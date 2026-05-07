@@ -20,13 +20,13 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 
 | Topic | Status | Notes |
 | --- | --- | --- |
-| JavaScript | Learning Archive | [데이터 타입, 함수, 클래스, 클로저, 이벤트 루프, 런타임 구조](cs/FE/Javascript.md) |
-| TypeScript | Learning Archive | [기본 타입, 제네릭, React를 위한 타입스크립트](cs/FE/Typescript.md) |
-| React | Learning Archive | [JSX, Virtual DOM, Fiber, 렌더링, 메모이제이션, Effect](cs/FE/React.md) |
+| JavaScript | Study Notes | [데이터 타입, 함수, 클래스, 클로저, 이벤트 루프, 런타임 구조](cs/FE/Javascript.md) |
+| TypeScript | Study Notes | [기본 타입, 제네릭, React를 위한 타입스크립트](cs/FE/Typescript.md) |
+| React | Study Notes | [JSX, Virtual DOM, Fiber, 렌더링, 메모이제이션, Effect](cs/FE/React.md) |
 | Next.js / SSR | Practice | [Next.js 정리](cs/FE/Next.js/next.js.md), [App Router](cs/FE/Next.js/app-router.md), [SSR Practice](https://github.com/sangyun-hwang/react-ssr-practice-without-nextjs) |
 | Testing | Learning | [Cypress 설치, 테스트 구조, 커맨드, Assertion, intercept](cs/FE/Cypress.md) |
 | State Management | Practice | [React Query, Redux, RTK 정리](cs/FE/StateManagement.md) |
-| HTML / Web | Learning Archive | [HTML 시맨틱 태그](cs/FE/HTML.md), [SEO](cs/SEO/SEO.md) |
+| HTML / Web | Study Notes | [HTML 시맨틱 태그](cs/FE/HTML.md), [SEO](cs/SEO/SEO.md) |
 
 ## CS
 
@@ -34,11 +34,11 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 
 | Topic | Status | Notes |
 | --- | --- | --- |
-| Browser / Runtime | Learning Archive | [JavaScript 런타임 구조와 이벤트 루프](cs/FE/Javascript.md#런타임-구조) |
-| Network | Learning Archive | [라우터, DNS, 네트워크 기초](cs/네트워크/네트워크.md) |
-| Security | Learning Archive | [웹 보안과 암호화 기본 개념](cs/보안/보안.md) |
+| Browser / Runtime | Study Notes | [JavaScript 런타임 구조와 이벤트 루프](cs/FE/Javascript.md#런타임-구조) |
+| Network | Study Notes | [라우터, DNS, 네트워크 기초](cs/네트워크/네트워크.md) |
+| Security | Study Notes | [웹 보안과 암호화 기본 개념](cs/보안/보안.md) |
 | Architecture | Learning | [DDD, EDA, RPC, gRPC](cs/패턴/Pattern.md) |
-| Information Processing | Learning Archive | [정보처리기사 이론](cs/정보처리기사/정보처리기사_이론.md), [프로그래밍](cs/정보처리기사/정보처리기사_프로그래밍.md) |
+| Information Processing | Study Notes | [정보처리기사 이론](cs/정보처리기사/정보처리기사_이론.md), [프로그래밍](cs/정보처리기사/정보처리기사_프로그래밍.md) |
 
 더 자세한 목차는 [CS 정리](cs/README.md)에서 관리합니다.
 
