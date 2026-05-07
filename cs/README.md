@@ -1,79 +1,75 @@
 # CS 정리
 
-# 📝 Table of Contents
+프론트엔드 개발과 연결되는 컴퓨터 과학, 웹 플랫폼, 런타임, 네트워크, 보안, 클라우드 기초를 주제별로 정리합니다.
 
-- [패턴](#패턴)
-- [HTML](#html)
-- [Javascript](#javascript)
-- [Typescript](#Typescript)
-- [React](#react)
-- [next.js](#nextjs)
-- [네트워크](#네트워크)
-- [보안](#보안)
-- [컨퍼런스](#컨퍼런스)
-- [기타](#기타)
+## Table of Contents
 
-## 패턴
+- [Frontend Core](#frontend-core)
+- [Testing](#testing)
+- [Backend](#backend)
+- [Cloud & Data](#cloud--data)
+- [Network](#network)
+- [Security](#security)
+- [Architecture](#architecture)
+- [Certificate](#certificate)
 
-- [도메인 주도 설계(DDD, Domain-Driven Design)](패턴/Pattern.md#도메인-주도-설계ddd-domain-driven-design)
-- [이벤트 주도 아키텍처(EDA, Event-Driven Architecture)](패턴/Pattern.md#이벤트-주도-아키텍처eda-event-driven-architecture)
+## Frontend Core
 
-## HTML
-
-- [시맨틱 태그](FE/HTML.md#시맨틱-태그)
-
-## Javascript
-
-- [자바스크립트 엔진 실행과정](FE/Javascript.md#자바스크립트-엔진-실행과정)
-- [V8 엔진](FE/Javascript.md#v8-엔진)
-- [scope](FE/Javascript.md#scope)
-- [AJAX](FE/Javascript.md#AJAX)
-- [CSR vs SSR vs SSG](FE/Javascript.md#csr-vs-ssr-vs-ssg)
-- [가비지 컬렉터](FE/Javascript.md#가비지-컬렉터)
-- [프론트엔드 성능 측정](FE/Javascript.md#프론트엔드-성능-측정)
-
-## Typescript
-
-- [제네릭](FE/Typescript.md#제네릭)
-
-## React
-
-- [가상 DOM](FE/React.md#가상-dom)
-
-## next.js
-
+- [JavaScript](FE/Javascript.md)
+  - 데이터 타입과 동등 비교
+  - 함수, 클래스, 클로저
+  - 이벤트 루프와 비동기 통신
+  - React에서 자주 사용하는 JavaScript 문법
+  - 클린코드
+  - 런타임 구조
+  - CSR, SSR, SSG
+  - 성능 측정
+- [TypeScript](FE/Typescript.md)
+  - 기본 타입
+  - 인터페이스
+  - any, unknown, never
+  - 제네릭
+  - React를 위한 타입스크립트
+- [React](FE/React.md)
+  - 왜 React인가?
+  - JSX
+  - Virtual DOM과 Fiber
+  - 클래스 컴포넌트와 함수 컴포넌트
+  - 렌더링
+  - 메모이제이션
+  - Effect
+- [HTML](FE/HTML.md)
+- [Next.js](FE/Next.js/next.js.md)
 - [App Router](FE/Next.js/app-router.md)
-- [React Server Component](FE/Next.js/next.js.md#react-server-component)
-- [Streaming](FE/Next.js/next.js.md#streaming)
-- [next/link](FE/Next.js/next.js.md#nextlink)
-- [next/router](FE/Next.js/next.js.md#nextrouter)
-- [next/image](FE/Next.js/next.js.md#nextimage)
-- [Data fetching](FE/Next.js/next.js.md#data-fetching)
+- [SEO](SEO/SEO.md)
+- [State Management](FE/StateManagement.md)
 
-## 네트워크
+## Testing
 
-- [라우팅 구성](네트워크/네트워크.md#라우팅-구성)
-- [DNS](네트워크/네트워크.md#dns)
+- [Cypress](FE/Cypress.md)
 
-## SEO
+## Backend
 
-- [구조화된 데이터](SEO/SEO.md#구조화된-데이터)
+- [Supabase](Backend/Supabase.md)
 
-## 보안
+## Cloud & Data
 
-- [보안에 대한 오해](보안/보안.md#보안에-대한-오해)
-- [보안이란 무엇인가?](보안/보안.md#보안이란-무엇인가)
-- [웹 보안의 구성](보안/보안.md#웹-보안의-구성)
-- [암호의 기본 개념](보안/보안.md#암호의-기본-개념)
+- [AWS](Cloud/AWS.md)
+- [Google Cloud & Looker](Cloud/GoogleCloud.md)
 
-## 컨퍼런스
+## Network
 
-- [인프콘](컨퍼런스/2023/인프콘.md)
+- [네트워크 기초](네트워크/네트워크.md)
 
-## 기타
+## Security
 
-- [직렬화/역직렬화](기타/기타.md#직렬화역직렬화)
-- [동시성/병렬성](기타/기타.md#동시성병렬성)
-- [프로시저](기타/기타.md#프로시저)
-- [원격 프로시저 호출(RPC)](기타/기타.md#원격-프로시저-호출rpc)
-- [gRPC](기타/기타.md/#grpc)
+- [보안 기초](보안/보안.md)
+
+## Architecture
+
+- [패턴과 아키텍처](패턴/Pattern.md)
+
+## Certificate
+
+- [정보처리기사 이론](정보처리기사/정보처리기사_이론.md)
+- [정보처리기사 프로그래밍](정보처리기사/정보처리기사_프로그래밍.md)
