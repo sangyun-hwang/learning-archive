@@ -8,6 +8,9 @@
 - [Testing](#testing)
 - [Backend](#backend)
 - [Cloud & Data](#cloud--data)
+- [Storage](#storage)
+- [AI & Tool Use](#ai--tool-use)
+- [Development Tools](#development-tools)
 - [Network](#network)
 - [Security](#security)
 - [Architecture](#architecture)
@@ -56,6 +59,18 @@
 
 - [AWS](Cloud/AWS.md)
 - [Google Cloud & Looker](Cloud/GoogleCloud.md)
+
+## Storage
+
+- [SSD 스케줄링과 내부 동작](ComputerScience/SSD.md)
+
+## AI & Tool Use
+
+- [Function Calling](AI/FunctionCalling.md)
+
+## Development Tools
+
+- [uvx](Tools/uvx.md)
 
 ## Network
 
