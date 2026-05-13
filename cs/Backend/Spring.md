@@ -484,3 +484,292 @@ Service
 - `@RestController`가 있으면 메서드 반환값이 HTTP 응답 body로 전달된다.
 - `@GetMapping("/health")`는 GET `/health` 요청과 메서드를 연결한다.
 - Controller는 HTTP 요청/응답을 담당하고, Service는 비즈니스 로직을 담당한다.
+
+## Spring Boot DevTools와 서버 재시작
+
+날짜: 2026-05-13
+분류: Spring Boot / Development
+상태: 이해 중
+
+### 질문
+
+Spring Boot는 프론트엔드 개발 서버처럼 코드 수정이 바로 반영되는가?
+
+### 짧은 답
+
+기본 Spring Boot 실행은 Java 코드 수정이 실행 중인 서버에 바로 반영되지 않는다. 보통 서버를 재시작해야 변경 내용이 적용된다.
+
+### 내가 이해한 내용
+
+프론트엔드의 Vite나 Next.js 개발 서버는 파일 변경을 감지하고 브라우저에 빠르게 반영해준다.
+
+```text
+React / Vite
+→ 파일 저장
+→ HMR 또는 자동 새로고침
+```
+
+반면 기본 Spring Boot 서버는 Java 애플리케이션이 이미 실행 중인 상태이므로, 코드를 수정해도 실행 중인 서버에는 바로 반영되지 않는다.
+
+```text
+Spring Boot 기본 실행
+→ Java 코드 수정
+→ 실행 중인 서버에는 바로 반영되지 않음
+→ 서버 재시작 필요
+```
+
+자동 재시작이 필요하면 `Spring Boot DevTools`를 사용할 수 있다.
+
+```gradle
+developmentOnly 'org.springframework.boot:spring-boot-devtools'
+```
+
+다만 DevTools는 프론트엔드 HMR처럼 화면 일부를 즉시 교체하는 느낌이라기보다, 변경을 감지해서 Spring Boot 애플리케이션을 빠르게 재시작해주는 기능에 가깝다.
+
+### 다시 볼 포인트
+
+- 기본 Spring Boot 실행은 코드 수정 후 서버 재시작이 필요하다.
+- `405 Method Not Allowed` 같은 결과가 이전 코드 기준으로 나올 때는 서버가 예전 코드로 떠 있는지 확인한다.
+- 자동 재시작이 필요하면 Spring Boot DevTools를 사용할 수 있다.
+- DevTools는 프론트엔드 HMR보다는 자동 서버 재시작에 가깝다.
+## Validation 실패와 전역 예외 처리
+날짜: 2026-05-13
+분류: Spring / Exception Handling
+상태: 이해 중
+
+### 질문
+
+`@Valid` 검증에 실패했을 때 기본 에러 응답 대신 직접 만든 JSON 응답으로 바꾸려면 어떻게 해야 하는가?
+
+### 지금의 답
+
+Spring에서는 컨트롤러에서 발생한 예외를 `@RestControllerAdvice`가 붙은 클래스에서 한곳에 모아 처리할 수 있다. `@Valid` 검증 실패는 `MethodArgumentNotValidException`으로 전달되고, 이 예외를 `@ExceptionHandler`로 잡아서 원하는 응답 DTO로 바꿔 반환할 수 있다.
+
+### 내가 이해한 내용
+
+요청 DTO에 `@NotBlank`, `@NotNull`, `@Min` 같은 검증 어노테이션을 붙이고, 컨트롤러의 `@RequestBody` 앞에 `@Valid`를 붙이면 Spring이 요청 값을 검사한다.
+
+```java
+public StudyLog createStudyLog(@Valid @RequestBody CreateStudyLogRequest request) {
+}
+```
+
+검증에 실패하면 컨트롤러 메서드 본문이 정상 실행되는 것이 아니라, Spring 내부에서 `MethodArgumentNotValidException`이 발생한다. 이 예외를 전역 예외 처리 클래스에서 잡으면 기본 에러 응답 대신 내가 만든 응답 형태를 내려줄 수 있다.
+
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(
+            MethodArgumentNotValidException exception
+    ) {
+        // 검증 실패 정보를 꺼내 ErrorResponse로 변환한다.
+    }
+}
+```
+
+### 주요 어노테이션
+
+`@RestControllerAdvice`는 여러 컨트롤러에서 발생하는 예외를 한곳에서 처리하기 위한 클래스임을 나타낸다.
+
+`@ExceptionHandler(MethodArgumentNotValidException.class)`는 `MethodArgumentNotValidException` 예외가 발생했을 때 해당 메서드가 실행되게 연결한다.
+
+`@Valid`는 요청 DTO 안에 붙어 있는 검증 어노테이션을 실제로 검사하게 만든다.
+
+### ResponseEntity
+
+`ResponseEntity<T>`는 응답 body뿐 아니라 HTTP 상태 코드까지 직접 정할 수 있는 Spring의 응답 객체이다.
+
+```java
+return ResponseEntity.badRequest().body(errorResponse);
+```
+
+위 코드는 HTTP 상태 코드를 `400 Bad Request`로 설정하고, 응답 body에는 `errorResponse`를 담아 보내겠다는 뜻이다.
+
+### 검증 실패 흐름
+
+```text
+POST /study-logs 요청
+-> @RequestBody가 JSON을 CreateStudyLogRequest 객체로 변환
+-> @Valid가 DTO의 검증 어노테이션 확인
+-> 검증 실패 시 MethodArgumentNotValidException 발생
+-> @ExceptionHandler가 예외를 잡음
+-> ErrorResponse DTO로 변환
+-> 400 Bad Request JSON 응답
+```
+
+### 다시 볼 포인트
+
+- 검증 어노테이션은 DTO 필드에 요청 값의 조건을 표현한다.
+- `@Valid`가 있어야 DTO 안의 검증 조건이 실제 요청 처리 중 실행된다.
+- 검증 실패는 일반 반환값이 아니라 예외 흐름으로 넘어간다.
+- `@RestControllerAdvice`는 여러 컨트롤러의 예외 처리를 한곳에 모으는 역할을 한다.
+- `@ExceptionHandler`는 특정 예외와 처리 메서드를 연결한다.
+- `ResponseEntity`를 쓰면 HTTP 상태 코드와 응답 body를 함께 직접 정할 수 있다.
+## Controller, Service, Repository 책임 분리
+날짜: 2026-05-13
+분류: Spring / Architecture
+상태: 이해 중
+
+### 질문
+
+Spring에서 Controller, Service, Repository는 각각 어떤 역할을 담당하는가?
+
+### 지금의 답
+
+Controller는 HTTP 요청과 응답을 담당하고, Service는 애플리케이션의 주요 로직을 처리하며, Repository는 데이터 저장소와 직접 대화하는 역할을 한다.
+
+### 내가 이해한 내용
+
+처음에는 Controller에 요청 처리, 데이터 생성, 목록 관리, 필터링, 합계 계산이 모두 들어가 있었다. 기능이 작을 때는 동작하지만, 코드가 커지면 한 클래스가 너무 많은 책임을 가지게 된다.
+
+Spring에서는 보통 역할을 다음처럼 나눈다.
+
+```text
+Controller
+-> HTTP 세계 담당
+-> URL, HTTP Method, QueryParam, RequestBody, Valid, 응답 반환
+
+Service
+-> 애플리케이션 로직 담당
+-> 요청 DTO를 도메인 객체로 바꾸기
+-> id 계산하기
+-> 필터링하기
+-> 총합 계산하기
+-> 어떤 Repository 메서드를 쓸지 결정하기
+
+Repository
+-> 데이터 저장소 담당
+-> 저장하기
+-> 전체 조회하기
+-> 나중에는 DB에서 조회하기
+```
+
+짧게 정리하면 다음과 같다.
+
+```text
+Controller는 요청을 받는다.
+Service는 일을 판단하고 처리한다.
+Repository는 데이터를 넣고 꺼낸다.
+```
+
+### Repository에 대한 이해
+
+Repository는 단순히 파일을 수정하는 계층이라기보다, 데이터가 저장되는 곳과 직접 대화하는 계층이다.
+
+지금 Stage 03에서는 실제 DB가 없기 때문에 Repository가 메모리 `List<StudyLog>`를 관리한다.
+
+```text
+현재
+Repository -> 메모리 List
+```
+
+나중에 DB를 배우면 Repository가 DB와 대화하는 역할로 바뀐다.
+
+```text
+나중
+Repository -> Database
+```
+
+이렇게 분리해두면 Service는 “무슨 일을 할지”에 집중하고, Repository는 “데이터를 어디에서 가져오고 어디에 저장할지”에 집중할 수 있다.
+
+### 다시 볼 포인트
+
+- Controller는 HTTP 요청과 응답을 다루는 입구이다.
+- Service는 기능의 흐름과 비즈니스 로직을 담당한다.
+- Repository는 데이터 저장소와 직접 대화한다.
+- DTO를 도메인 객체로 바꾸거나 id를 계산하는 로직은 Service에 두는 것이 자연스럽다.
+- Repository는 `CreateStudyLogRequest` 같은 요청 DTO를 몰라도 된다.
+- Repository의 `save()`는 저장할 대상인 `StudyLog`를 받는 편이 책임 분리에 맞다.
+## Stage 03 CRUD 마무리
+날짜: 2026-05-13
+분류: Spring / CRUD
+상태: 이해 중
+
+### 질문
+
+Spring Boot로 메모리 기반 CRUD API를 만들 때 전체 흐름은 어떻게 나뉘는가?
+
+### 지금의 답
+
+Stage 03에서는 `StudyLog`를 대상으로 생성, 조회, 수정, 삭제 API를 만들면서 Controller, Service, Repository, DTO, Exception Handler의 역할을 나누는 연습을 했다.
+
+### 만든 API
+
+```text
+POST   /study-logs          학습 기록 생성
+GET    /study-logs          학습 기록 목록 조회
+GET    /study-logs/{id}     학습 기록 단건 조회
+PATCH  /study-logs/{id}     학습 기록 부분 수정
+DELETE /study-logs/{id}     학습 기록 삭제
+GET    /study-logs/summary  카테고리별 학습 시간 합계
+```
+
+### 계층별 흐름
+
+```text
+Controller
+-> HTTP 요청을 받는다.
+-> URL, Method, PathVariable, RequestParam, RequestBody, Valid를 다룬다.
+-> Service를 호출하고 응답을 반환한다.
+
+Service
+-> 실제 기능 흐름을 처리한다.
+-> DTO를 StudyLog 도메인 객체로 바꾼다.
+-> 없는 데이터인지 판단하고 예외를 던진다.
+-> 필터링, 합계 계산, 부분 수정 값을 결정한다.
+
+Repository
+-> 데이터를 저장하고 꺼낸다.
+-> 지금은 메모리 List를 사용한다.
+-> 나중에는 DB와 직접 대화하는 계층이 된다.
+```
+
+### 예외 처리 흐름
+
+단건 조회, 수정, 삭제에서 없는 id를 요청하면 Service의 `findById(id)`가 `StudyLogNotFoundException`을 던진다.
+
+```text
+Repository.findById(id)
+-> 없으면 null
+-> Service.findById(id)가 null을 예외로 변환
+-> GlobalExceptionHandler가 404 Not Found 응답으로 변환
+```
+
+즉, Repository는 단순 조회를 하고, Service가 그 결과의 의미를 해석한다.
+
+### 부분 수정 PATCH
+
+처음 만든 PATCH는 모든 필드를 다 받아서 새 `StudyLog`로 교체하는 방식이었다. 이후에는 일부 필드만 보내도 기존 값이 유지되도록 수정했다.
+
+```json
+{
+  "minutes": 90
+}
+```
+
+위 요청에서는 `minutes`만 바뀌고, `title`, `category`, `memo`는 기존 값을 유지한다.
+
+부분 수정에서는 "값을 안 보낸 것"과 "값을 보냈는데 값이 비어 있거나 잘못된 것"을 구분해야 한다. `int`는 값이 없으면 `0`이 되어버리기 때문에, 요청 DTO에서는 `Integer`를 사용해 `null`을 표현할 수 있게 했다.
+
+```text
+int
+-> null 불가
+-> 값이 없으면 0처럼 기본값으로 처리될 수 있음
+
+Integer
+-> null 가능
+-> 요청에 값이 없는 상태를 표현할 수 있음
+```
+
+### 다시 볼 포인트
+
+- `@PostMapping`, `@GetMapping`, `@PatchMapping`, `@DeleteMapping`은 HTTP Method와 Java 메서드를 연결한다.
+- `@PathVariable`은 URL 경로의 값을 Java 파라미터로 받는다.
+- `@RequestParam`은 query parameter를 받는다.
+- `@RequestBody`는 JSON body를 Java DTO로 변환한다.
+- `@Valid`는 DTO의 검증 어노테이션을 실행한다.
+- `ResponseEntity`를 쓰면 상태 코드와 응답 body를 직접 정할 수 있다.
+- 같은 이름의 메서드라도 `studyLogRepository.findById(id)`와 `findById(id)`는 서로 다른 클래스의 메서드일 수 있다.
+- Service 안에서 `findById(id)`처럼 쓰면 `this.findById(id)`와 같은 의미이다.

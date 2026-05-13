@@ -67,3 +67,53 @@ for (StudyLog log : logs) {
     log.printInfo();
 }
 ```
+
+## List.of
+
+날짜: 2026-05-13
+분류: Java
+상태: 이해 중
+
+### 질문
+
+`List.of(...)`는 무엇인가?
+
+### 짧은 답
+
+`List.of(...)`는 여러 값을 한 번에 넣어 `List`를 만들 때 사용하는 정적 메서드입니다.
+
+### 내가 이해한 내용
+
+기존에는 `ArrayList`를 만들고 값을 하나씩 추가했다.
+
+```java
+List<String> names = new ArrayList<>();
+
+names.add("Java");
+names.add("Spring");
+names.add("Database");
+```
+
+`List.of(...)`를 사용하면 여러 값을 한 번에 넣어 목록을 만들 수 있다.
+
+```java
+List<String> names = List.of("Java", "Spring", "Database");
+```
+
+처음에는 "배열을 만든다"라고 생각할 수 있지만, 더 정확히는 배열이 아니라 `List`를 만든다.
+
+`spring-backend-study`의 Stage 03에서는 샘플 `StudyLog` 목록을 반환할 때 사용했다.
+
+```java
+return List.of(
+        new StudyLog(1L, "Java class practice", StudyCategory.JAVA, 60, "field and constructor"),
+        new StudyLog(2L, "Java array practice", StudyCategory.JAVA, 40, "array basics")
+);
+```
+
+### 다시 볼 포인트
+
+- `List.of(...)`는 여러 값을 한 번에 담은 `List`를 만든다.
+- `ArrayList`를 만들고 `add()`를 여러 번 호출하는 방식보다 샘플 데이터 작성이 간단하다.
+- `List.of(...)`로 만든 목록은 기본적으로 요소 추가/삭제가 불가능하다.
+- 샘플 응답처럼 고정된 데이터를 만들 때 쓰기 좋다.
