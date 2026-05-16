@@ -26,6 +26,7 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 | Next.js / SSR | Practice | [Next.js 정리](cs/FE/Next.js/next.js.md), [App Router](cs/FE/Next.js/app-router.md), [SSR Practice](https://github.com/sangyun-hwang/react-ssr-practice-without-nextjs) |
 | Testing | Learning | [Cypress 설치, 테스트 구조, 커맨드, Assertion, intercept](cs/FE/Cypress.md) |
 | State Management | Practice | [React Query, Redux, RTK 정리](cs/FE/StateManagement.md) |
+| Monorepo | Practice | [Monorepo 구조, Workspace, Turborepo](cs/FE/Monorepo.md) |
 | HTML / Web | Study Notes | [HTML 시맨틱 태그](cs/FE/HTML.md), [SEO](cs/SEO/SEO.md) |
 
 ## CS

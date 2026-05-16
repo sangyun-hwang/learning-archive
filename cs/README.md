@@ -46,6 +46,7 @@
 - [App Router](FE/Next.js/app-router.md)
 - [SEO](SEO/SEO.md)
 - [State Management](FE/StateManagement.md)
+- [Monorepo](FE/Monorepo.md)
 
 ## Testing
 
