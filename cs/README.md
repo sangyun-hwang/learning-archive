@@ -67,6 +67,7 @@
 ## AI & Tool Use
 
 - [Function Calling](AI/FunctionCalling.md)
+- [Prompt Injection](AI/PromptInjection.md)
 
 ## Development Tools
 
