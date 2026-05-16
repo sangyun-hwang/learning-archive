@@ -67,6 +67,7 @@
 ## AI & Tool Use
 
 - [Function Calling](AI/FunctionCalling.md)
+- [LLM Guardrails](AI/LLMGuardrails.md)
 - [Prompt Injection](AI/PromptInjection.md)
 
 ## Development Tools
