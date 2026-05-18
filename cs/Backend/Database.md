@@ -307,3 +307,44 @@ JDBC는 DB와 Java가 실제로 어떻게 연결되는지 이해하기 좋다. �
 - `executeUpdate()`는 성공/실패 boolean이 아니라 영향 받은 row 수를 반환한다.
 - 없는 id 수정/삭제는 SQL 에러가 아니라 `updatedRows == 0`으로 판단할 수 있다.
 - Repository 코드는 DB 연결 대상이 H2든 MySQL이든 `DataSource`를 통해 연결한다.
+
+## Stage 05 JDBC 반복 코드 정리
+날짜: 2026-05-19
+분류: Database / JDBC
+상태: 이해 중
+
+### mapRow()
+
+SQL 조회 결과인 `ResultSet`의 한 행(row)을 자바 객체인 `StudyLog` 형식으로 바꾸는 과정이다.
+
+`findAll`, `findByCategory`, `findById`에서 같은 변환 코드가 반복되어서 `mapRow()` 메서드로 분리했다.
+
+### try-with-resources
+
+예외가 발생하더라도 DB 연결(`Connection`), SQL 실행 객체(`PreparedStatement`), 조회 결과 객체(`ResultSet`)를 반드시 닫기 위한 문법이다.
+
+서버는 오래 실행되기 때문에 DB 자원이 닫히지 않으면 연결이 쌓여 문제가 생길 수 있다.
+
+### JDBC에서 아직 반복되는 코드
+
+```java
+Connection connection = dataSource.getConnection();
+PreparedStatement statement = connection.prepareStatement(sql);
+ResultSet resultSet = statement.executeQuery();
+statement.setString(...);
+statement.setLong(...);
+```
+
+그리고 예외 처리 코드도 여러 메서드에서 반복된다.
+
+```java
+catch (SQLException e) {
+    throw new RuntimeException(e);
+}
+```
+
+### 다음에 MyBatis가 필요한 이유
+
+JDBC를 직접 쓰면 연결, SQL 실행, 파라미터 바인딩, 결과 매핑, 예외 처리 코드가 반복된다.
+
+MyBatis는 이런 반복을 줄이고 SQL과 자바 객체 매핑을 더 깔끔하게 관리할 수 있게 도와준다.
