@@ -179,3 +179,131 @@ H2 메모리 DB는 Spring Boot 서버를 재시작하면 데이터가 사라진�
 - `NOT NULL`은 값이 반드시 있어야 한다는 뜻이다.
 - Java enum은 DB에서는 보통 문자열로 저장한다.
 - SQL 파일 실행 순서는 `schema.sql` -> `seed.sql` -> 조회/수정/집계 SQL 순서가 자연스럽다.
+
+## Stage 05 JDBC와 MySQL CRUD
+날짜: 2026-05-19
+분류: Database / JDBC
+상태: 이해 중
+
+### 질문
+
+Java/Spring 애플리케이션에서 MySQL DB에 직접 연결해 CRUD를 수행하려면 어떤 흐름을 거치는가?
+
+### 지금의 답
+
+Spring Boot의 `application.properties`에 datasource 설정을 작성하면 Spring Boot가 `DataSource` 객체를 생성한다. Repository는 이 `DataSource`를 주입받고, `dataSource.getConnection()`으로 DB 연결을 얻어 SQL을 실행한다.
+
+```text
+application.properties
+-> Spring Boot가 DataSource 생성
+-> Repository가 DataSource 주입받음
+-> Connection 획득
+-> PreparedStatement로 SQL 준비
+-> SQL 실행
+-> ResultSet 또는 영향 받은 row 수 확인
+```
+
+### MySQL datasource 설정
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/spring_backend_study
+spring.datasource.username=root
+spring.datasource.password=${MYSQL_PASSWORD}
+```
+
+`localhost`는 내 컴퓨터의 MySQL 서버를 의미한다. 실제 배포 환경에서는 DB 서버 주소, 계정, 비밀번호를 운영 환경에 맞게 바꿔야 한다.
+
+비밀번호는 GitHub에 올라가지 않도록 `${MYSQL_PASSWORD}` 환경변수로 분리했다.
+
+### JDBC 핵심 객체
+
+`Connection`은 DB와 연결된 통로이다.
+
+`PreparedStatement`는 SQL을 담고, `?` placeholder에 값을 넣어 실행하는 객체이다.
+
+`ResultSet`은 `SELECT` 실행 결과 row들을 읽는 객체이다.
+
+### executeQuery와 executeUpdate
+
+`SELECT`는 결과 row를 읽어야 하므로 `executeQuery()`를 사용한다.
+
+```java
+ResultSet resultSet = statement.executeQuery();
+```
+
+`INSERT`, `UPDATE`, `DELETE`는 영향을 받은 row 수를 확인하므로 `executeUpdate()`를 사용한다.
+
+```java
+int updatedRows = statement.executeUpdate();
+```
+
+### JDBC CRUD 흐름
+
+전체 조회:
+
+```text
+SELECT 실행
+-> ResultSet을 while문으로 순회
+-> 각 row를 StudyLog 객체로 변환
+-> List<StudyLog> 반환
+```
+
+단건 조회:
+
+```text
+SELECT ... WHERE id = ?
+-> ResultSet에서 if (resultSet.next()) 확인
+-> 있으면 StudyLog 반환
+-> 없으면 null 반환
+```
+
+생성:
+
+```text
+다음 id 조회
+-> StudyLog 객체 생성
+-> INSERT 실행
+-> 저장한 StudyLog 반환
+```
+
+수정:
+
+```text
+기존 StudyLog 조회
+-> 요청에 없는 값은 기존 값 유지
+-> UPDATE 실행
+-> updatedRows가 0이면 없는 id로 판단
+```
+
+삭제:
+
+```text
+DELETE ... WHERE id = ? 실행
+-> updatedRows가 0이면 삭제 대상 없음
+-> 0보다 크면 삭제 성공
+```
+
+### 이번에 느낀 점
+
+JDBC는 DB와 Java가 실제로 어떻게 연결되는지 이해하기 좋다. 하지만 코드가 반복된다.
+
+반복되는 부분:
+
+- Connection 얻기
+- PreparedStatement 만들기
+- `?`에 값 넣기
+- SQLException 처리
+- ResultSet에서 컬럼 하나씩 꺼내기
+- row를 객체로 바꾸기
+- try-with-resources로 자원 닫기
+
+이 반복 때문에 다음 단계에서 MyBatis나 JdbcTemplate 같은 도구가 왜 필요한지 이해할 수 있다.
+
+### 다시 볼 포인트
+
+- JDBC는 ORM이 아니다.
+- JDBC는 Java가 SQL을 직접 실행하기 위한 기본 통로이다.
+- MyBatis와 JPA도 내부적으로는 JDBC를 통해 DB와 통신한다.
+- `executeUpdate()`는 성공/실패 boolean이 아니라 영향 받은 row 수를 반환한다.
+- 없는 id 수정/삭제는 SQL 에러가 아니라 `updatedRows == 0`으로 판단할 수 있다.
+- Repository 코드는 DB 연결 대상이 H2든 MySQL이든 `DataSource`를 통해 연결한다.
