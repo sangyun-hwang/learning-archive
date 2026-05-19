@@ -348,3 +348,82 @@ catch (SQLException e) {
 JDBC를 직접 쓰면 연결, SQL 실행, 파라미터 바인딩, 결과 매핑, 예외 처리 코드가 반복된다.
 
 MyBatis는 이런 반복을 줄이고 SQL과 자바 객체 매핑을 더 깔끔하게 관리할 수 있게 도와준다.
+
+## Stage 06 MyBatis와 JDBC 비교
+날짜: 2026-05-19
+분류: Database / MyBatis
+상태: 이해 중
+
+### 질문
+
+JDBC로 직접 작성하던 DB 접근 코드는 MyBatis를 쓰면 어떻게 줄어드는가?
+
+### 지금의 답
+
+JDBC에서는 `Connection`을 얻고, `PreparedStatement`를 만들고, SQL 파라미터를 바인딩하고, `ResultSet`을 읽고, 자원을 닫는 코드를 직접 작성해야 했다.
+
+MyBatis는 이런 반복적인 JDBC 실행 절차를 줄여준다. 다만 SQL 자체는 개발자가 직접 작성한다.
+
+### Mapper 인터페이스
+
+Mapper 인터페이스는 Java 메서드와 SQL을 연결하는 역할을 한다.
+
+개발자가 인터페이스에 메서드를 선언하고 `@Select`, `@Insert`, `@Update`, `@Delete` 같은 어노테이션으로 SQL을 붙이면, MyBatis가 실행 시점에 구현체를 만들어 SQL을 실행한다.
+
+```java
+@Mapper
+public interface StudyLogMapper {
+    @Select("SELECT id, title, category, minutes, memo FROM study_logs")
+    List<StudyLog> findAll();
+}
+```
+
+### 파라미터 바인딩
+
+MyBatis의 `#{id}`, `#{title}` 같은 문법은 JDBC의 `?` placeholder와 `statement.setLong(...)`, `statement.setString(...)` 같은 파라미터 바인딩 코드에 대응된다.
+
+```sql
+WHERE id = #{id}
+```
+
+위 코드는 JDBC에서 아래 코드와 비슷한 역할을 한다.
+
+```java
+WHERE id = ?
+statement.setLong(1, id);
+```
+
+### SQL 어노테이션
+
+`@Select`는 조회 SQL을 실행한다.
+
+`@Insert`는 추가 SQL을 실행한다.
+
+`@Update`는 수정 SQL을 실행한다.
+
+`@Delete`는 삭제 SQL을 실행한다.
+
+각 어노테이션은 Mapper 메서드와 실행할 SQL을 연결한다.
+
+### MyBatis를 써도 직접 작성해야 하는 것
+
+MyBatis를 써도 개발자는 어떤 SQL을 실행할지 직접 작성해야 한다.
+
+또한 어떤 API가 필요한지, 어떤 Mapper 메서드가 필요한지, 파라미터를 어디에 바인딩할지, 조회 결과를 어떤 객체로 받을지, 없는 데이터나 예외 상황을 어떻게 처리할지도 직접 설계해야 한다.
+
+### UPDATE / DELETE의 int 반환
+
+`UPDATE`와 `DELETE`는 영향을 받은 row 수를 반환할 수 있다.
+
+수정 또는 삭제된 row가 있으면 `1`, 대상이 없으면 `0`이 나올 수 있다.
+
+따라서 반환 타입을 `int`로 두면 없는 id를 요청했는지 확인하고 예외 처리를 할 수 있다.
+
+### 다시 볼 포인트
+
+- MyBatis는 SQL을 없애는 도구가 아니다.
+- MyBatis는 JDBC의 반복적인 실행 절차를 줄여주는 도구이다.
+- Mapper 인터페이스는 Java 메서드와 SQL을 연결하는 입구이다.
+- `#{}` 문법은 SQL 파라미터 바인딩에 사용된다.
+- 조회 결과 row 수와 Mapper 메서드 반환 타입을 맞춰야 한다.
+- 여러 row를 조회하면 `List<StudyLog>`, 한 row를 조회하면 `StudyLog`가 자연스럽다.
