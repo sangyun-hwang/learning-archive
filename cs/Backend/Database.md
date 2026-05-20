@@ -427,3 +427,101 @@ MyBatis를 써도 개발자는 어떤 SQL을 실행할지 직접 작성해야 �
 - `#{}` 문법은 SQL 파라미터 바인딩에 사용된다.
 - 조회 결과 row 수와 Mapper 메서드 반환 타입을 맞춰야 한다.
 - 여러 row를 조회하면 `List<StudyLog>`, 한 row를 조회하면 `StudyLog`가 자연스럽다.
+
+## Stage 06-2 MyBatis XML Mapper
+날짜: 2026-05-21
+분류: Database / MyBatis
+상태: 이해 중
+
+### 질문
+
+MyBatis 어노테이션 방식에서 XML Mapper 방식으로 바꾸면 무엇이 달라지는가?
+
+### 지금의 답
+
+어노테이션 방식에서는 Mapper 인터페이스의 메서드 위에 `@Select`, `@Insert`, `@Update`, `@Delete`를 붙이고 괄호 안 문자열에 SQL을 작성했다.
+
+XML Mapper 방식에서는 SQL을 Java 파일 밖의 XML 파일로 분리한다.
+
+Java Mapper 인터페이스에는 반환 타입, 메서드 이름, 파라미터 타입, 파라미터 이름 같은 메서드 선언만 남고, 실제 SQL은 XML Mapper 파일에 작성한다.
+
+### XML Mapper 파일 위치
+
+이번 학습에서는 XML 파일을 아래 위치에 만들었다.
+
+```text
+src/main/resources/mapper/StudyLogMapper.xml
+```
+
+MyBatis가 이 XML 파일을 찾을 수 있도록 `application.properties`에 위치 설정을 추가했다.
+
+```properties
+mybatis.mapper-locations=classpath:mapper/*.xml
+```
+
+`classpath:mapper/*.xml`은 `src/main/resources/mapper` 폴더 아래의 XML 파일들을 Mapper XML로 읽으라는 의미이다.
+
+### namespace와 id
+
+XML의 `namespace`는 Java Mapper 인터페이스의 전체 경로와 연결된다.
+
+```xml
+<mapper namespace="com.study.stage03.mapper.StudyLogMapper">
+```
+
+위 설정은 이 XML 파일이 `com.study.stage03.mapper.StudyLogMapper` 인터페이스와 연결된다는 뜻이다.
+
+XML 내부의 `id`는 Mapper 인터페이스의 메서드 이름과 연결된다.
+
+```xml
+<select id="findAll" resultType="com.study.stage03.domain.StudyLog">
+    SELECT id, title, category, minutes, memo
+    FROM study_logs
+</select>
+```
+
+위 SQL은 Java Mapper의 아래 메서드와 연결된다.
+
+```java
+List<StudyLog> findAll();
+```
+
+즉 MyBatis는 `namespace`와 `id`를 조합해서 어떤 Java 메서드가 어떤 SQL을 실행해야 하는지 찾는다.
+
+### XML 태그와 Mapper 메서드
+
+`<select>`는 조회 SQL을 작성할 때 사용한다.
+
+`<insert>`는 추가 SQL을 작성할 때 사용한다.
+
+`<update>`는 수정 SQL을 작성할 때 사용한다.
+
+`<delete>`는 삭제 SQL을 작성할 때 사용한다.
+
+조회 결과를 객체로 받을 때는 `resultType`에 반환할 객체 타입을 작성할 수 있다.
+
+```xml
+<select id="findById" resultType="com.study.stage03.domain.StudyLog">
+    SELECT id, title, category, minutes, memo
+    FROM study_logs
+    WHERE id = #{id}
+</select>
+```
+
+### XML Mapper 방식의 장점
+
+SQL을 Java 코드에서 분리해서 XML 파일에서 관리할 수 있다.
+
+SQL이 길어지거나 조건이 복잡해질 때 어노테이션 방식보다 가독성이 좋고, SQL만 따로 확인하고 관리하기 쉽다.
+
+특히 검색 조건, JOIN, 동적 SQL, 페이징처럼 복잡한 쿼리를 다루는 프로젝트에서 유리하다.
+
+SI나 전자정부 계열 프로젝트에서는 길고 복잡한 업무 SQL을 다루는 경우가 많기 때문에 XML Mapper 방식을 자주 볼 수 있다.
+
+### 다시 볼 포인트
+
+- Java Mapper는 메서드 선언을 담당한다.
+- XML Mapper는 실제 SQL을 담당한다.
+- MyBatis는 `namespace`와 `id`로 Java 메서드와 XML SQL을 연결한다.
+- `mybatis.mapper-locations` 설정은 XML Mapper 파일 위치를 MyBatis에게 알려준다.
+- XML Mapper는 SQL이 길어질수록 어노테이션 방식보다 관리하기 쉽다.
