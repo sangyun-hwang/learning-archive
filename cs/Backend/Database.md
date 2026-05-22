@@ -636,3 +636,119 @@ List<StudyLog> search(
 - 파라미터가 여러 개면 `@Param`으로 XML에서 사용할 이름을 명시한다.
 - Controller는 요청 파라미터를 전달하고, SQL 조건 조립은 XML Mapper가 담당하게 만들 수 있다.
 - `LIKE '%keyword%'` 검색은 편하지만 데이터가 많아지면 성능 이슈가 생길 수 있다.
+
+## Stage 06-4 MyBatis resultMap과 동적 UPDATE
+날짜: 2026-05-22
+분류: Database / MyBatis
+상태: 이해 중
+
+### 질문
+
+MyBatis에서 조회 결과 매핑을 명시적으로 관리하고, PATCH 수정 로직을 더 자연스럽게 표현하려면 어떻게 할 수 있을까?
+
+### resultType과 resultMap
+
+`resultType`은 SQL 조회 결과를 지정한 Java 타입으로 자동 매핑한다.
+
+DB 컬럼명과 Java property 이름이 잘 맞으면 `resultType`만으로 충분하다.
+
+`resultMap`은 DB 컬럼과 Java property를 명시적으로 연결한다.
+
+컬럼명과 property 이름이 다르거나, 매핑 규칙을 직접 관리하고 싶을 때 사용한다.
+
+```xml
+<resultMap id="studyLogResultMap" type="com.study.stage03.domain.StudyLog">
+    <id property="id" column="id"/>
+    <result property="title" column="title"/>
+    <result property="category" column="category"/>
+    <result property="minutes" column="minutes"/>
+    <result property="memo" column="memo"/>
+</resultMap>
+```
+
+### property와 column
+
+`property`는 Java 객체의 필드 또는 getter/setter 기준 이름이다.
+
+`column`은 SQL 조회 결과의 컬럼 이름이다.
+
+```xml
+<result property="title" column="title"/>
+```
+
+위 코드는 DB의 `title` 컬럼 값을 Java 객체의 `title` property에 넣는다는 뜻이다.
+
+실무에서는 DB는 `snake_case`, Java는 `camelCase`를 쓰는 경우가 많다.
+
+```text
+DB column    -> Java property
+created_at   -> createdAt
+user_name    -> userName
+study_log_id -> studyLogId
+```
+
+### set 태그와 동적 UPDATE
+
+`<set>` 태그는 동적 UPDATE에서 SQL의 `SET` 절을 만들어준다.
+
+내부에 수정할 컬럼이 하나라도 있으면 `SET`을 붙이고, 마지막에 남는 불필요한 콤마를 정리해준다.
+
+```xml
+<update id="updatePartial">
+    UPDATE study_logs
+    <set>
+        <if test="request.title != null">
+            title = #{request.title},
+        </if>
+        <if test="request.category != null">
+            category = #{request.category},
+        </if>
+        <if test="request.minutes != null">
+            minutes = #{request.minutes},
+        </if>
+        <if test="request.memo != null">
+            memo = #{request.memo},
+        </if>
+    </set>
+    WHERE id = #{id}
+</update>
+```
+
+### PATCH 처리 방식의 변화
+
+기존 방식은 Controller에서 요청 값이 null인지 확인하고, null이면 기존 값을 채워서 전체 필드를 UPDATE했다.
+
+동적 UPDATE 방식은 XML Mapper에서 값이 있는 필드만 UPDATE한다.
+
+그래서 Controller의 null 처리 코드가 줄어들고, PATCH의 "보낸 필드만 수정한다"는 의미를 SQL에 더 직접적으로 표현할 수 있다.
+
+수정 후 응답은 다시 `findById(id)`로 최신 데이터를 조회해서 반환했다.
+
+```java
+studyLogMapper.updatePartial(id, request);
+return studyLogMapper.findById(id);
+```
+
+### 기존 update 제거
+
+기존 `update()`와 `updatePartial()`은 둘 다 학습 기록을 수정하는 역할을 했다.
+
+동적 UPDATE를 적용한 뒤에는 `updatePartial()`이 PATCH에 더 잘 맞고, 기존 `update()`는 사용되지 않는 중복 메서드가 되었다.
+
+그래서 사용하지 않는 기존 `update()`를 제거했다.
+
+### JDBC와 비교해 느낀 점
+
+JDBC는 DB 연결, SQL 실행, 파라미터 바인딩, ResultSet 처리, 자원 정리 코드를 직접 작성해야 해서 반복이 많았다.
+
+MyBatis는 Mapper 인터페이스와 XML Mapper를 통해 SQL과 Java 메서드를 연결하고, 반복적인 JDBC 처리 코드를 줄여준다.
+
+그 결과 코드가 더 읽기 쉬워지고, SQL을 XML에서 관리할 수 있어 유지보수하기 편해졌다.
+
+### 다시 볼 포인트
+
+- `resultType`은 자동 매핑이고, `resultMap`은 명시적 매핑이다.
+- `property`는 Java 객체의 이름이고, `column`은 DB 조회 결과 컬럼 이름이다.
+- `<set>`은 동적 UPDATE에서 `SET` 절과 마지막 콤마 정리를 도와준다.
+- 동적 UPDATE는 요청에 포함된 필드만 수정하는 PATCH 방식과 잘 맞는다.
+- 사용하지 않는 Mapper 메서드와 XML SQL은 정리해야 한다.
