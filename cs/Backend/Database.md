@@ -525,3 +525,114 @@ SI나 전자정부 계열 프로젝트에서는 길고 복잡한 업무 SQL을 �
 - MyBatis는 `namespace`와 `id`로 Java 메서드와 XML SQL을 연결한다.
 - `mybatis.mapper-locations` 설정은 XML Mapper 파일 위치를 MyBatis에게 알려준다.
 - XML Mapper는 SQL이 길어질수록 어노테이션 방식보다 관리하기 쉽다.
+
+## Stage 06-3 MyBatis 동적 SQL
+날짜: 2026-05-22
+분류: Database / MyBatis
+상태: 이해 중
+
+### 질문
+
+검색 조건이 있을 때와 없을 때 SQL을 어떻게 다르게 만들 수 있을까?
+
+### 지금의 답
+
+MyBatis 동적 SQL은 요청 파라미터나 조건 값에 따라 SQL 문장이 달라져야 할 때 사용한다.
+
+예를 들어 `category`가 있으면 category 조건을 붙이고, `title`이 있으면 title 검색 조건을 붙이며, 둘 다 없으면 전체 조회를 할 수 있다.
+
+### Controller와 XML Mapper의 역할 분리
+
+기존에는 Controller에서 category 유무를 직접 분기했다.
+
+```java
+if (category == null) {
+    return studyLogMapper.findAll();
+}
+
+return studyLogMapper.findByCategory(category);
+```
+
+동적 SQL을 적용한 뒤에는 Controller가 요청 파라미터를 Mapper에 전달하기만 한다.
+
+```java
+return studyLogMapper.search(title, category);
+```
+
+검색 조건에 따라 SQL을 조립하는 책임은 XML Mapper가 담당한다.
+
+### if 태그
+
+`<if>` 태그는 `test` 조건이 참일 때만 내부 SQL 조각을 추가한다.
+
+```xml
+<if test="title != null and title != ''">
+    AND title LIKE CONCAT('%', #{title}, '%')
+</if>
+```
+
+위 코드는 `title` 값이 있을 때만 title 검색 조건을 SQL에 추가한다.
+
+### where 태그
+
+`<where>` 태그는 내부에 조건이 하나라도 있을 때만 `WHERE`를 자동으로 붙여준다.
+
+또한 조건 맨 앞의 불필요한 `AND`나 `OR`를 자동으로 제거해준다.
+
+```xml
+<where>
+    <if test="category != null">
+        AND category = #{category}
+    </if>
+    <if test="title != null and title != ''">
+        AND title LIKE CONCAT('%', #{title}, '%')
+    </if>
+</where>
+```
+
+조건이 있으면 올바른 `WHERE` 절을 만들고, 조건이 없으면 `WHERE` 자체를 만들지 않는다.
+
+예를 들어 category만 있으면 아래처럼 정리된다.
+
+```sql
+WHERE category = ?
+```
+
+category와 title이 모두 있으면 아래처럼 정리된다.
+
+```sql
+WHERE category = ?
+AND title LIKE ?
+```
+
+### Param 어노테이션
+
+Mapper 메서드에 파라미터가 두 개 이상 있을 때는 `@Param`으로 이름을 명확하게 지정한다.
+
+```java
+List<StudyLog> search(
+        @Param("title") String title,
+        @Param("category") StudyCategory category
+);
+```
+
+이렇게 작성하면 XML에서 `#{title}`, `#{category}`로 안정적으로 참조할 수 있다.
+
+### LIKE 검색과 인덱스
+
+`LIKE '%keyword%'`는 일반적인 문자열 인덱스를 효율적으로 쓰기 어려울 수 있다.
+
+문자열 인덱스는 보통 앞부분부터 정렬된 구조를 활용한다.
+
+`LIKE 'keyword%'`처럼 시작 부분이 고정되어 있으면 인덱스를 활용하기 쉽지만, `LIKE '%keyword%'`는 앞에 어떤 문자열이 올지 알 수 없어서 인덱스의 시작 지점을 잡기 어렵다.
+
+따라서 많은 row를 확인해야 할 수 있다.
+
+### 다시 볼 포인트
+
+- 동적 SQL은 조건에 따라 SQL 문장이 달라져야 할 때 사용한다.
+- `<if>`는 조건이 참일 때만 SQL 조각을 추가한다.
+- `<where>`는 필요한 경우에만 `WHERE`를 붙이고, 앞쪽 `AND`나 `OR`를 정리한다.
+- 파라미터가 여러 개면 `@Param`으로 XML에서 사용할 이름을 명시한다.
+- Controller는 요청 파라미터를 전달하고, SQL 조건 조립은 XML Mapper가 담당하게 만들 수 있다.
+- `LIKE '%keyword%'` 검색은 편하지만 데이터가 많아지면 성능 이슈가 생길 수 있다.
