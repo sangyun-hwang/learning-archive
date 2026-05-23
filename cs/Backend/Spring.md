@@ -773,3 +773,189 @@ Integer
 - `ResponseEntity`를 쓰면 상태 코드와 응답 body를 직접 정할 수 있다.
 - 같은 이름의 메서드라도 `studyLogRepository.findById(id)`와 `findById(id)`는 서로 다른 클래스의 메서드일 수 있다.
 - Service 안에서 `findById(id)`처럼 쓰면 `this.findById(id)`와 같은 의미이다.
+
+## Stage 07 Spring MVC와 JSP
+날짜: 2026-05-23
+분류: Spring / MVC / JSP
+상태: 이해 중
+
+### 질문
+
+REST API처럼 JSON을 응답하는 방식과, Spring MVC + JSP처럼 서버에서 HTML 화면을 만들어 응답하는 방식은 어떻게 다를까?
+
+### RestController와 Controller
+
+`@RestController`는 메서드 반환값을 HTTP Response Body로 응답한다.
+
+객체를 반환하면 JSON으로 변환된다.
+
+`@Controller`는 MVC 화면 응답에 사용한다. 문자열을 반환하면 그 문자열을 view 이름으로 해석한다.
+
+```java
+@Controller
+public class StudyLogPageController {
+    @GetMapping("/mvc/study-logs")
+    public String studyLogListPage(Model model) {
+        return "study-log/list";
+    }
+}
+```
+
+### View 경로 설정
+
+JSP를 찾기 위해 `application.properties`에 view prefix와 suffix를 설정했다.
+
+```properties
+spring.mvc.view.prefix=/WEB-INF/views/
+spring.mvc.view.suffix=.jsp
+```
+
+Controller가 아래 문자열을 반환하면:
+
+```java
+return "study-log/list";
+```
+
+Spring MVC는 실제 JSP 파일을 아래 경로로 찾는다.
+
+```text
+/WEB-INF/views/study-log/list.jsp
+```
+
+프로젝트 파일 위치는 아래와 같다.
+
+```text
+src/main/webapp/WEB-INF/views/study-log/list.jsp
+```
+
+### Model
+
+`Model`은 Controller가 JSP에 데이터를 전달하기 위한 상자 역할을 한다.
+
+Controller는 `model.addAttribute(...)`로 데이터를 담고, JSP는 EL 문법으로 값을 꺼내 쓴다.
+
+```java
+model.addAttribute("message", "Model data is working.");
+model.addAttribute("logs", studyLogMapper.search(title, category));
+```
+
+```jsp
+${message}
+${logs}
+```
+
+### JSP 목록 출력
+
+Controller에서 `logs`라는 이름으로 학습 기록 목록을 Model에 담았다.
+
+JSP에서는 JSTL의 `<c:forEach>`로 목록을 반복 출력했다.
+
+```jsp
+<c:forEach var="log" items="${logs}">
+    <tr>
+        <td>${log.id}</td>
+        <td>${log.title}</td>
+        <td>${log.category}</td>
+        <td>${log.minutes}</td>
+        <td>${log.memo}</td>
+    </tr>
+</c:forEach>
+```
+
+### JSP 검색 폼
+
+검색 폼은 GET 방식으로 `/mvc/study-logs`에 요청을 보낸다.
+
+```jsp
+<form method="get" action="/mvc/study-logs">
+```
+
+`method="get"`은 form 값을 URL query parameter로 붙여 GET 요청을 보내겠다는 뜻이다.
+
+`action="/mvc/study-logs"`는 form submit 시 요청을 보낼 주소이다.
+
+input과 select의 `name`은 query parameter 이름이 된다.
+
+```jsp
+<input type="text" name="title" value="${title}">
+<select name="category">
+```
+
+검색 버튼을 누르면 브라우저는 form 안의 `name`과 값을 모아서 아래와 같은 URL을 만든다.
+
+```text
+/mvc/study-logs?title=xml&category=SPRING
+```
+
+Controller는 `@RequestParam`으로 query parameter 값을 받는다.
+
+```java
+@GetMapping("/mvc/study-logs")
+public String studyLogListPage(
+        @RequestParam(required = false) String title,
+        @RequestParam(required = false) StudyCategory category,
+        Model model
+) {
+    model.addAttribute("logs", studyLogMapper.search(title, category));
+    model.addAttribute("title", title);
+    model.addAttribute("category", category);
+    return "study-log/list";
+}
+```
+
+### 검색 조건 유지
+
+검색 후에도 사용자가 입력한 조건을 화면에 다시 보여주기 위해 `title`과 `category`를 Model에 다시 담았다.
+
+```java
+model.addAttribute("title", title);
+model.addAttribute("category", category);
+```
+
+JSP에서는 title input의 value에 `${title}`을 넣어 검색어를 유지했다.
+
+category select는 현재 category와 option 값을 비교해서 `selected`를 출력했다.
+
+```jsp
+<option value="SPRING" ${category == 'SPRING' ? 'selected' : ''}>SPRING</option>
+```
+
+### 빈 결과 처리
+
+검색 결과가 없을 때는 JSTL의 `<c:if>`와 `${empty logs}`를 사용했다.
+
+```jsp
+<c:if test="${empty logs}">
+    <tr>
+        <td colspan="5">No study logs found.</td>
+    </tr>
+</c:if>
+```
+
+`${empty logs}`는 `logs`가 null이거나 비어 있는 컬렉션일 때 true가 된다.
+
+### REST API + React와 MVC + JSP 비교
+
+REST API + React 방식은 백엔드가 JSON을 응답하고, React가 브라우저에서 그 데이터를 받아 화면을 만든다.
+
+Spring MVC + JSP 방식은 Controller가 Model에 데이터를 담고, JSP가 서버에서 HTML을 만든 뒤 브라우저에 응답한다.
+
+가장 큰 차이는 HTML을 어디서 만드느냐이다.
+
+```text
+REST API + React
+-> 브라우저/React가 화면 생성
+
+Spring MVC + JSP
+-> 서버/JSP가 화면 생성
+```
+
+### 다시 볼 포인트
+
+- `@RestController`는 Response Body를 응답하고, `@Controller`는 view 이름을 반환할 수 있다.
+- Controller의 view 이름은 prefix와 suffix를 통해 실제 JSP 경로로 해석된다.
+- `Model`은 Controller가 JSP에 데이터를 전달하는 객체이다.
+- JSP의 `${...}`는 Model에 담긴 값을 꺼내는 EL 문법이다.
+- `<c:forEach>`는 JSP에서 목록을 반복 출력할 때 사용한다.
+- GET form submit은 input/select의 `name`과 값을 query parameter로 만든다.
+- Spring MVC + JSP는 서버에서 HTML을 만들어 응답하는 SSR 방식이다.
