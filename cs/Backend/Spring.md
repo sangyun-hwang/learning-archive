@@ -959,3 +959,116 @@ Spring MVC + JSP
 - `<c:forEach>`는 JSP에서 목록을 반복 출력할 때 사용한다.
 - GET form submit은 input/select의 `name`과 값을 query parameter로 만든다.
 - Spring MVC + JSP는 서버에서 HTML을 만들어 응답하는 SSR 방식이다.
+
+## Stage 07 JSP 생성 폼과 redirect
+날짜: 2026-05-24
+분류: Spring / MVC / JSP
+상태: 이해 중
+
+### 질문
+
+JSP form에서 입력한 데이터를 Spring MVC Controller로 보내고 DB에 저장하려면 어떤 흐름을 거칠까?
+
+### GET 화면 요청과 POST 처리 요청
+
+`GET /mvc/study-logs/new`는 새 학습 기록을 작성할 JSP form 화면을 보여준다.
+
+`POST /mvc/study-logs`는 form에서 제출한 데이터를 받아 새 학습 기록을 생성한다.
+
+```text
+GET /mvc/study-logs/new
+-> 작성 화면 조회
+
+POST /mvc/study-logs
+-> 작성 데이터 처리
+-> DB 저장
+```
+
+`POST /mvc/study-logs`는 REST API라기보다는 JSP form 제출을 처리하는 MVC Controller 요청이다.
+
+### JSP 작성 폼
+
+작성 폼은 POST 방식으로 `/mvc/study-logs`에 데이터를 보낸다.
+
+```jsp
+<form method="post" action="/mvc/study-logs">
+    <input type="text" name="title">
+    <select name="category">
+        <option value="JAVA">JAVA</option>
+        <option value="SPRING">SPRING</option>
+        <option value="DATABASE">DATABASE</option>
+    </select>
+    <input type="number" name="minutes">
+    <textarea name="memo"></textarea>
+    <button type="submit">Create</button>
+</form>
+```
+
+`method="post"`는 form submit 시 POST 요청을 보내겠다는 뜻이다.
+
+`action="/mvc/study-logs"`는 form submit 시 요청을 보낼 URL이다.
+
+### ModelAttribute
+
+`@ModelAttribute`는 form에서 전달된 request parameter들을 Java 객체로 묶어준다.
+
+form input/select/textarea의 `name`과 DTO의 필드 이름을 기준으로 값을 바인딩한다.
+
+```java
+@PostMapping("/mvc/study-logs")
+public String createStudyLog(@ModelAttribute CreateStudyLogRequest request) {
+    StudyLog studyLog = new StudyLog(
+            studyLogMapper.getNextId(),
+            request.getTitle(),
+            request.getCategory(),
+            request.getMinutes(),
+            request.getMemo()
+    );
+
+    studyLogMapper.save(studyLog);
+
+    return "redirect:/mvc/study-logs";
+}
+```
+
+예를 들어 form의 `name="title"` 값은 request parameter `title`로 전달되고, Spring MVC가 `CreateStudyLogRequest`의 `title` 필드에 바인딩한다.
+
+### setter가 필요했던 이유
+
+`@ModelAttribute`가 form 데이터를 DTO 객체에 넣을 때 setter를 통해 값을 주입하려고 한다.
+
+setter가 없으면 `title`, `category`, `minutes`, `memo` 값이 DTO에 제대로 들어가지 않아 null 또는 기본값으로 남을 수 있다.
+
+그래서 `CreateStudyLogRequest`에 setter를 추가했다.
+
+```java
+public void setTitle(String title) {
+    this.title = title;
+}
+```
+
+### redirect
+
+```java
+return "redirect:/mvc/study-logs";
+```
+
+위 코드는 POST 요청 처리 후 브라우저에게 `/mvc/study-logs`로 다시 요청하라고 응답한다.
+
+즉 저장 후 목록 화면으로 이동하게 만든다.
+
+POST 처리 후 redirect하면 마지막 브라우저 요청이 `GET /mvc/study-logs`가 된다.
+
+그래서 사용자가 목록 화면에서 새로고침해도 POST 요청이 다시 실행되지 않고, GET 목록 조회만 다시 실행된다.
+
+이 방식은 Post/Redirect/Get 패턴이다.
+
+### 다시 볼 포인트
+
+- GET `/new`는 작성 화면을 보여준다.
+- POST `/mvc/study-logs`는 form 데이터를 받아 저장한다.
+- JSP form의 `name`은 request parameter 이름이 된다.
+- `@ModelAttribute`는 form parameter를 DTO 객체로 묶어준다.
+- form 바인딩을 위해 DTO에 setter가 필요할 수 있다.
+- 저장 후에는 `redirect:/mvc/study-logs`로 목록 화면을 다시 요청하게 만든다.
+- redirect를 사용하면 새로고침으로 인한 중복 POST 제출을 줄일 수 있다.
