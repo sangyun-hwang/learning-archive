@@ -1072,3 +1072,130 @@ POST 처리 후 redirect하면 마지막 브라우저 요청이 `GET /mvc/study-
 - form 바인딩을 위해 DTO에 setter가 필요할 수 있다.
 - 저장 후에는 `redirect:/mvc/study-logs`로 목록 화면을 다시 요청하게 만든다.
 - redirect를 사용하면 새로고침으로 인한 중복 POST 제출을 줄일 수 있다.
+
+## Stage 07 JSP 수정/삭제 흐름
+날짜: 2026-05-26
+분류: Spring / MVC / JSP
+상태: 이해 중
+
+### 질문
+
+HTML form 기반 JSP MVC에서는 학습 기록 수정과 삭제를 어떻게 처리할 수 있을까?
+
+### 수정 화면 요청
+
+`GET /mvc/study-logs/{id}/edit`는 수정할 데이터를 id로 조회해서 수정 폼 화면에 보여주는 요청이다.
+
+이 요청은 데이터를 수정하는 요청이 아니라, 수정 화면을 열기 위한 GET 요청이다.
+
+```java
+@GetMapping("/mvc/study-logs/{id}/edit")
+public String editStudyLogPage(@PathVariable Long id, Model model) {
+    StudyLog studyLog = studyLogMapper.findById(id);
+
+    if (studyLog == null) {
+        throw new StudyLogNotFoundException();
+    }
+
+    model.addAttribute("log", studyLog);
+
+    return "study-log/edit";
+}
+```
+
+JSP는 Model에 담긴 `log`를 사용해 기존 값을 폼에 채운다.
+
+```jsp
+<input type="text" name="title" value="${log.title}">
+<input type="number" name="minutes" value="${log.minutes}">
+```
+
+### 수정 처리 요청
+
+`POST /mvc/study-logs/{id}/edit`는 수정 폼에서 제출한 데이터를 받아 해당 id의 학습 기록을 수정하는 요청이다.
+
+```java
+@PostMapping("/mvc/study-logs/{id}/edit")
+public String updateStudyLog(
+        @PathVariable Long id,
+        @ModelAttribute UpdateStudyLogRequest request
+) {
+    StudyLog studyLog = studyLogMapper.findById(id);
+
+    if (studyLog == null) {
+        throw new StudyLogNotFoundException();
+    }
+
+    studyLogMapper.updatePartial(id, request);
+
+    return "redirect:/mvc/study-logs";
+}
+```
+
+수정 처리 후에는 목록 화면으로 redirect한다.
+
+### 삭제 버튼
+
+삭제는 데이터를 변경하는 요청이므로 `<a>` 링크보다 POST form으로 처리하는 것이 더 적절하다.
+
+`<a>` 링크는 기본적으로 GET 요청을 만든다. GET은 조회 성격의 요청으로 보는 것이 자연스럽고, 링크 클릭이나 크롤러 접근만으로 데이터가 삭제되면 위험할 수 있다.
+
+그래서 목록 화면에서는 삭제 버튼을 POST form으로 만들었다.
+
+```jsp
+<form method="post" action="/mvc/study-logs/${log.id}/delete" style="display:inline;">
+    <button type="submit">Delete</button>
+</form>
+```
+
+### 삭제 처리 요청
+
+`POST /mvc/study-logs/{id}/delete`는 삭제 요청을 받아 DB에서 해당 학습 기록을 삭제한다.
+
+```java
+@PostMapping("/mvc/study-logs/{id}/delete")
+public String deleteStudyLog(@PathVariable Long id) {
+    int deleteRows = studyLogMapper.delete(id);
+
+    if (deleteRows == 0) {
+        throw new StudyLogNotFoundException();
+    }
+
+    return "redirect:/mvc/study-logs";
+}
+```
+
+삭제 후에도 목록 화면으로 redirect한다.
+
+### REST API와 JSP MVC form 처리 비교
+
+REST API 방식은 HTTP Method 자체로 행위 의미를 표현한다.
+
+```text
+PATCH  /study-logs/{id}
+DELETE /study-logs/{id}
+```
+
+JSP MVC 방식은 HTML form이 기본적으로 GET과 POST만 지원하기 때문에, 수정/삭제도 POST로 처리하고 URL 경로로 의미를 구분할 수 있다.
+
+```text
+POST /mvc/study-logs/{id}/edit
+POST /mvc/study-logs/{id}/delete
+```
+
+즉 REST API는 Method 중심이고, JSP MVC form 처리는 POST + action URL 중심으로 이해하면 된다.
+
+### redirect를 사용하는 이유
+
+수정/삭제 같은 POST 처리 후 redirect를 사용하면 마지막 요청이 GET 목록 조회가 된다.
+
+그래서 사용자가 목록 화면에서 새로고침해도 수정/삭제 POST가 다시 실행되는 문제를 줄일 수 있다.
+
+### 다시 볼 포인트
+
+- `GET /edit`는 수정 화면을 열기 위한 요청이다.
+- `POST /edit`는 수정 폼 데이터를 받아 수정 처리하는 요청이다.
+- 수정 폼의 `${log.title}` 같은 값은 Controller가 Model에 담은 `log`에서 온다.
+- HTML form은 PATCH/DELETE를 직접 지원하지 않으므로 JSP MVC에서는 POST + 처리 URL로 수정/삭제를 표현할 수 있다.
+- 삭제는 GET 링크가 아니라 POST form으로 처리하는 것이 안전하다.
+- 수정/삭제 후에는 redirect로 목록 화면을 다시 요청하게 만든다.
