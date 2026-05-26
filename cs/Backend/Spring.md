@@ -1199,3 +1199,150 @@ POST /mvc/study-logs/{id}/delete
 - HTML form은 PATCH/DELETE를 직접 지원하지 않으므로 JSP MVC에서는 POST + 처리 URL로 수정/삭제를 표현할 수 있다.
 - 삭제는 GET 링크가 아니라 POST form으로 처리하는 것이 안전하다.
 - 수정/삭제 후에는 redirect로 목록 화면을 다시 요청하게 만든다.
+
+## Stage 07 JSP form 검증과 에러 처리
+날짜: 2026-05-27
+분류: Spring / MVC / JSP / Validation
+상태: 이해 중
+
+### 질문
+
+JSP form에서 잘못된 입력이 들어왔을 때 서버 에러가 아니라 다시 form 화면에 에러 메시지를 보여주려면 어떻게 해야 할까?
+
+### Valid
+
+`@Valid`는 Controller에 들어온 DTO의 검증 어노테이션을 실행한다.
+
+예를 들어 `@NotBlank`, `@NotNull`, `@Min(1)` 같은 조건을 확인한다.
+
+```java
+@PostMapping("/mvc/study-logs")
+public String createStudyLog(
+        @Valid @ModelAttribute CreateStudyLogRequest request,
+        BindingResult bindingResult,
+        Model model
+) {
+    ...
+}
+```
+
+### BindingResult
+
+`BindingResult`는 `@Valid` 검증 결과를 담는 객체이다.
+
+검증 실패가 있는지 확인할 수 있고, 어떤 필드에서 어떤 에러가 났는지도 꺼낼 수 있다.
+
+```java
+bindingResult.hasErrors()
+bindingResult.getFieldErrors()
+```
+
+`BindingResult`는 바로 앞의 `@Valid` 대상에 대한 검증 결과를 담는다.
+
+그래서 어떤 객체의 검증 결과인지 Spring MVC가 연결할 수 있도록 `@Valid`가 붙은 파라미터 바로 뒤에 와야 한다.
+
+```java
+@Valid @ModelAttribute CreateStudyLogRequest request,
+BindingResult bindingResult
+```
+
+### 생성 폼 검증 실패 처리
+
+생성 폼에서 검증 실패 시 DB에 저장하지 않고 다시 `new.jsp`를 보여줬다.
+
+이때 사용자가 입력했던 값을 `request`로 다시 Model에 담고, 검증 에러 목록도 Model에 담았다.
+
+```java
+if (bindingResult.hasErrors()) {
+    model.addAttribute("request", request);
+    model.addAttribute("errors", bindingResult.getFieldErrors());
+    return "study-log/new";
+}
+```
+
+JSP에서는 `request`를 사용해 기존 입력값을 유지했다.
+
+```jsp
+<input type="text" name="title" value="${request.title}">
+<input type="number" name="minutes" value="${request.minutes}">
+<textarea name="memo">${request.memo}</textarea>
+```
+
+### 에러 메시지 출력
+
+Controller에서 `bindingResult.getFieldErrors()`를 Model에 `errors`라는 이름으로 담았다.
+
+```java
+model.addAttribute("errors", bindingResult.getFieldErrors());
+```
+
+JSP에서는 JSTL의 `<c:forEach>`로 에러 목록을 반복 출력했다.
+
+```jsp
+<c:if test="${not empty errors}">
+    <ul>
+        <c:forEach var="error" items="${errors}">
+            <li>${error.field}: ${error.defaultMessage}</li>
+        </c:forEach>
+    </ul>
+</c:if>
+```
+
+### 수정 폼 검증 실패 처리
+
+수정 폼에서도 `@Valid`와 `BindingResult`를 사용했다.
+
+검증 실패 시 DB를 수정하지 않고 다시 `edit.jsp`를 보여줬다.
+
+```java
+if (bindingResult.hasErrors()) {
+    model.addAttribute("errors", bindingResult.getFieldErrors());
+    model.addAttribute("id", id);
+    model.addAttribute("request", request);
+
+    return "study-log/edit";
+}
+```
+
+### 도메인 객체와 request DTO 구분
+
+수정 폼 검증 실패 시 잘못된 입력값으로 `StudyLog` 객체를 새로 만들면 문제가 됐다.
+
+`StudyLog` 도메인 객체는 생성자에서 이미 정상 데이터인지 검증한다.
+
+```java
+if (title == null || title.isBlank()) {
+    throw new IllegalArgumentException("title must not be blank");
+}
+```
+
+따라서 title이 비어 있거나 minutes가 0인 검증 실패 값을 `StudyLog`에 넣으면, JSP에 에러 메시지를 보여주기 전에 도메인 객체 생성 과정에서 예외가 발생한다.
+
+도메인 객체는 정상 상태의 데이터를 표현해야 한다.
+
+검증 실패한 form 입력값은 아직 정상 데이터가 아니므로 도메인 객체로 만들기보다, 사용자가 입력한 값을 담는 request DTO 상태로 다시 JSP에 넘기는 것이 자연스럽다.
+
+### REST API와 JSP MVC form 검증 차이
+
+REST API에서는 검증 실패 정보를 JSON 응답으로 내려주는 방식이 자연스럽다.
+
+JSP MVC form에서는 다시 form 화면을 보여주고, 그 화면 안에 에러 메시지와 기존 입력값을 함께 표시하는 방식이 자연스럽다.
+
+```text
+REST API
+-> JSON 에러 응답
+
+JSP MVC form
+-> form JSP 다시 렌더링
+-> 입력값 유지
+-> 에러 메시지 표시
+```
+
+### 다시 볼 포인트
+
+- `@Valid`는 DTO의 검증 어노테이션을 실행한다.
+- `BindingResult`는 바로 앞의 `@Valid` 대상에 대한 검증 결과를 담는다.
+- 검증 실패 시 저장/수정하지 않고 form JSP로 돌아간다.
+- 에러 메시지는 `bindingResult.getFieldErrors()`로 꺼내 JSP에서 반복 출력할 수 있다.
+- 검증 실패한 입력값은 도메인 객체가 아니라 request DTO로 다시 JSP에 넘기는 것이 자연스럽다.
+- 도메인 객체는 정상 상태의 데이터를 표현해야 한다.
