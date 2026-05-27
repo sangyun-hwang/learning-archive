@@ -55,6 +55,9 @@
 ## Backend
 
 - [Supabase](Backend/Supabase.md)
+- [Java](Backend/Java.md)
+- [Spring](Backend/Spring.md)
+- [Database / JDBC / MyBatis](Backend/Database.md)
 
 ## Cloud & Data
 

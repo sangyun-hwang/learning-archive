@@ -54,7 +54,8 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 | Supabase | Basic Study | [Firebase와 Supabase 비교, Database/Auth/Storage/Realtime 개요](cs/Backend/Supabase.md) |
 | WebSocket / Chat | Practice | [react_chat_app](https://github.com/sangyun-hwang/react_chat_app) |
 | Java | Learning | [기초 문법, 객체지향, 컬렉션 개념](cs/Backend/Java.md) |
-| Spring | Learning | [Spring Boot 학습 중 정리](cs/Backend/Spring.md) |
+| Spring | Learning | [Spring Boot, MVC/JSP, Validation 학습 정리](cs/Backend/Spring.md) |
+| Database / MyBatis | Learning | [SQL, JDBC, MyBatis 학습 정리](cs/Backend/Database.md) |
 
 ## Cloud & Data Basics
 
