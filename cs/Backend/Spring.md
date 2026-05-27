@@ -1346,3 +1346,173 @@ JSP MVC form
 - 에러 메시지는 `bindingResult.getFieldErrors()`로 꺼내 JSP에서 반복 출력할 수 있다.
 - 검증 실패한 입력값은 도메인 객체가 아니라 request DTO로 다시 JSP에 넘기는 것이 자연스럽다.
 - 도메인 객체는 정상 상태의 데이터를 표현해야 한다.
+## Stage 08 세션 로그인과 Interceptor
+날짜: 2026-05-28
+분류: Spring / MVC / Session / Interceptor
+상태: 이해 중
+
+### 질문
+
+Spring MVC + JSP 방식에서 로그인 상태를 유지하고, 로그인하지 않은 사용자의 화면 접근을 막으려면 어떻게 해야 할까?
+
+### HTTP와 세션
+
+HTTP는 기본적으로 stateless이다. 즉 이전 요청에서 로그인했다는 사실을 다음 요청이 자동으로 기억하지 않는다.
+
+그래서 로그인 기능을 만들려면 서버가 별도의 저장 공간에 로그인 상태를 기억해야 한다. Spring MVC에서는 `HttpSession`을 사용해 이 흐름을 직접 다뤄볼 수 있다.
+
+세션 로그인에서는 서버와 브라우저가 서로 다른 것을 저장한다.
+
+```text
+서버
+-> 세션 저장소에 loginUser 같은 로그인 상태 저장
+
+브라우저
+-> 서버 세션을 찾기 위한 세션 ID를 쿠키로 저장
+```
+
+브라우저가 다음 요청을 보낼 때 세션 ID 쿠키를 같이 보내면, 서버는 그 ID로 기존 세션을 찾아 로그인 상태를 확인한다.
+
+### 로그인 처리
+
+로그인 성공 시 서버 세션에 사용자 정보를 저장했다.
+
+```java
+session.setAttribute("loginUser", username);
+```
+
+이 코드는 현재 세션에 `loginUser`라는 이름으로 로그인한 사용자 이름을 저장한다는 뜻이다.
+
+```text
+loginUser -> student
+```
+
+이후 같은 브라우저에서 요청이 들어오면 서버는 세션에서 `loginUser`를 꺼내 로그인 상태인지 확인할 수 있다.
+
+### 로그아웃 처리
+
+로그아웃은 세션 상태를 변경하는 요청이다. 그래서 GET 링크보다 POST form으로 처리하는 것이 자연스럽다.
+
+```java
+@PostMapping("/mvc/logout")
+public String logout(HttpSession session) {
+    session.invalidate();
+    return "redirect:/mvc/login";
+}
+```
+
+`session.invalidate()`는 현재 세션을 종료한다. 세션 안에 저장된 `loginUser` 같은 값도 더 이상 사용할 수 없게 된다.
+
+로그아웃 후에는 `redirect:/mvc/login`으로 보냈다. 이렇게 하면 POST 요청 후 브라우저 주소도 로그인 페이지로 바뀌고, 새로고침으로 로그아웃 POST가 반복되는 문제도 줄일 수 있다.
+
+### Controller 안에서 직접 로그인 체크하기
+
+처음에는 Controller 메서드마다 세션을 확인했다.
+
+```java
+Object loginUser = session.getAttribute("loginUser");
+
+if (loginUser == null) {
+    return "redirect:/mvc/login";
+}
+```
+
+이 방식은 동작하지만 여러 메서드에 같은 코드가 반복된다. 접근 조건이 바뀌면 모든 메서드를 찾아 수정해야 하고, Controller가 실제 화면 기능보다 인증 체크 코드로 지저분해진다.
+
+### Interceptor
+
+Interceptor는 Spring MVC 요청 흐름 중 Controller 실행 직전에 끼어드는 객체이다.
+
+```text
+브라우저 요청
+-> DispatcherServlet
+-> HandlerMapping이 Controller 찾음
+-> Interceptor preHandle()
+-> Controller 메서드
+-> JSP 렌더링
+```
+
+로그인 체크처럼 여러 Controller에서 반복되는 공통 검사를 Interceptor로 분리할 수 있다.
+
+### preHandle()
+
+`preHandle()`은 Controller 실행 전에 호출된다.
+
+```java
+@Override
+public boolean preHandle(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        Object handler
+) throws Exception {
+    HttpSession session = request.getSession(false);
+
+    if (session == null || session.getAttribute("loginUser") == null) {
+        response.sendRedirect("/mvc/login");
+        return false;
+    }
+
+    return true;
+}
+```
+
+`return true`는 원래 요청을 계속 진행하라는 뜻이다.
+
+`return false`는 Controller를 실행하지 않고 여기서 요청 흐름을 멈추겠다는 뜻이다.
+
+`request.getSession(false)`에서 `false`를 넣은 이유는 기존 세션만 확인하기 위해서이다. 로그인 체크 중에 새 빈 세션을 만들 필요가 없기 때문이다.
+
+### WebConfig와 Interceptor 등록
+
+Interceptor 클래스를 만들기만 해서는 실제 요청에 적용되지 않는다. Spring MVC 설정에서 어떤 경로에 적용할지 등록해야 한다.
+
+```java
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new LoginCheckInterceptor())
+                .addPathPatterns("/mvc/study-logs/**");
+    }
+}
+```
+
+`addPathPatterns("/mvc/study-logs/**")`는 `/mvc/study-logs` 아래의 요청들에 Interceptor를 적용한다는 뜻이다.
+
+예를 들면 다음 경로들이 포함된다.
+
+```text
+/mvc/study-logs
+/mvc/study-logs/new
+/mvc/study-logs/1/edit
+/mvc/study-logs/1/delete
+```
+
+### Interceptor 적용 후 Controller 변화
+
+Interceptor를 적용한 뒤에는 Controller 메서드마다 반복하던 로그인 체크를 제거할 수 있었다.
+
+Controller는 목록 조회, 생성, 수정, 삭제 같은 실제 화면 기능에 집중하고, 로그인 여부 확인은 Interceptor가 담당한다.
+
+목록 화면에서 `student님 로그인 중` 같은 표시가 필요할 때만 Controller에서 세션 값을 꺼내 Model에 담았다.
+
+```java
+Object loginUser = session.getAttribute("loginUser");
+model.addAttribute("loginUser", loginUser);
+```
+
+이 코드는 접근 제어가 아니라 JSP 화면에 표시할 데이터를 전달하는 역할이다.
+
+### 다시 볼 포인트
+
+- HTTP는 stateless라서 로그인 상태를 자동으로 기억하지 않는다.
+- 세션 로그인에서 서버는 로그인 상태를 저장하고, 브라우저는 세션 ID를 쿠키로 들고 다닌다.
+- `session.setAttribute("loginUser", username)`은 세션에 로그인 사용자 정보를 저장한다.
+- `session.invalidate()`는 현재 세션을 종료한다.
+- 로그아웃은 서버 상태를 변경하므로 POST로 처리하는 것이 자연스럽다.
+- Interceptor는 Controller 실행 전에 공통 검사를 수행할 수 있다.
+- `preHandle()`에서 `true`는 계속 진행, `false`는 Controller 실행 중단을 의미한다.
+- `request.getSession(false)`는 기존 세션만 확인하고 새 세션은 만들지 않는다.
+- `WebConfig`의 `addPathPatterns()`로 Interceptor 적용 경로를 지정한다.
+- Interceptor를 적용하면 Controller의 반복 로그인 체크 코드를 줄일 수 있다.
