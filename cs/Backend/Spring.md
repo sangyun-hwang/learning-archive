@@ -1516,3 +1516,235 @@ model.addAttribute("loginUser", loginUser);
 - `request.getSession(false)`는 기존 세션만 확인하고 새 세션은 만들지 않는다.
 - `WebConfig`의 `addPathPatterns()`로 Interceptor 적용 경로를 지정한다.
 - Interceptor를 적용하면 Controller의 반복 로그인 체크 코드를 줄일 수 있다.
+## Stage 09 검색 조건 유지와 페이징
+날짜: 2026-05-29
+분류: Spring / MVC / JSP / MyBatis / Pagination
+상태: 이해 중
+
+### 질문
+
+업무형 목록 화면에서 데이터가 많아졌을 때 검색 조건을 유지하면서 일부 데이터만 조회하려면 어떻게 해야 할까?
+
+### 페이징이 필요한 이유
+
+목록 데이터가 많을 때 한 번에 전부 조회하면 DB가 많은 row를 읽어야 하고, 서버 메모리에 많은 객체가 올라오며, 응답 HTML도 커지고 브라우저 렌더링도 무거워진다.
+
+페이징은 필요한 만큼만 조회하고 보여주는 방식이다.
+
+```text
+전체 데이터 10만 개
+-> 한 번에 모두 조회하지 않음
+-> 현재 페이지에 필요한 10개 또는 20개만 조회
+```
+
+그래서 DB 처리량, 서버 메모리, 네트워크 응답 크기, 화면 렌더링 부담을 줄일 수 있다.
+
+### page, size, offset
+
+`page`는 사용자가 보고 싶은 페이지 번호이다. 보통 사용자가 보는 페이지 번호는 1부터 시작한다.
+
+`size`는 한 페이지에 보여줄 데이터 개수이다.
+
+`offset`은 DB에서 앞에서 몇 개의 row를 건너뛸지 나타낸다. DB 기준 건너뛰기는 0부터 시작한다.
+
+계산식은 다음과 같다.
+
+```text
+offset = (page - 1) * size
+```
+
+예를 들어 `size = 10`이면 다음과 같다.
+
+```text
+page = 1 -> offset = 0
+page = 2 -> offset = 10
+page = 3 -> offset = 20
+```
+
+### LIMIT과 OFFSET
+
+MySQL 기준으로 `LIMIT`은 가져올 데이터 개수를 의미하고, `OFFSET`은 앞에서 건너뛸 데이터 개수를 의미한다.
+
+```sql
+ORDER BY id
+LIMIT #{size}
+OFFSET #{offset}
+```
+
+이 SQL은 `id` 기준으로 정렬한 뒤, `offset`만큼 건너뛰고, 그 다음 `size`개를 가져온다.
+
+예를 들어 다음 SQL은 앞의 20개를 건너뛰고 그 다음 10개를 가져온다.
+
+```sql
+LIMIT 10 OFFSET 20
+```
+
+한 페이지 크기가 10이라면 3페이지 데이터에 해당한다.
+
+### MyBatis 페이징 조회
+
+Mapper 인터페이스에는 검색 조건과 페이징 조건을 함께 받는 메서드를 추가했다.
+
+```java
+List<StudyLog> searchPage(
+        @Param("title") String title,
+        @Param("category") StudyCategory category,
+        @Param("size") int size,
+        @Param("offset") int offset
+);
+```
+
+XML Mapper에서는 기존 검색 조건에 `LIMIT`, `OFFSET`을 붙였다.
+
+```xml
+<select id="searchPage" resultMap="studyLogResultMap">
+    SELECT id, title, category, minutes, memo
+    FROM study_logs
+    <where>
+        <if test="title != null and title != ''">
+            AND title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="category != null">
+            AND category = #{category}
+        </if>
+    </where>
+    ORDER BY id
+    LIMIT #{size}
+    OFFSET #{offset}
+</select>
+```
+
+### 전체 개수 조회가 필요한 이유
+
+현재 페이지의 목록만 조회하면 마지막 페이지가 몇 번인지 알 수 없다.
+
+그래서 목록 조회 쿼리와 별도로 검색 조건에 맞는 전체 개수 조회 쿼리가 필요하다.
+
+```java
+int countSearch(
+        @Param("title") String title,
+        @Param("category") StudyCategory category
+);
+```
+
+```xml
+<select id="countSearch" resultType="int">
+    SELECT COUNT(*)
+    FROM study_logs
+    <where>
+        <if test="title != null and title != ''">
+            AND title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="category != null">
+            AND category = #{category}
+        </if>
+    </where>
+</select>
+```
+
+목록 조회는 현재 페이지에 보여줄 row를 가져오는 역할이고, 전체 개수 조회는 페이지 버튼과 마지막 페이지를 계산하기 위한 역할이다.
+
+### totalPages 계산
+
+전체 페이지 수는 전체 개수를 페이지 크기로 나누어 계산한다. 마지막 페이지에는 `size`보다 적은 데이터가 들어갈 수 있으므로 올림 계산이 필요하다.
+
+정수 계산으로는 다음 식을 사용할 수 있다.
+
+```java
+int totalPages = (totalCount + size - 1) / size;
+```
+
+예를 들어 `totalCount = 31`, `size = 10`이면 다음과 같다.
+
+```text
+(31 + 10 - 1) / 10
+= 40 / 10
+= 4
+```
+
+### page와 size 보정
+
+사용자가 URL을 직접 수정하면 `page=0`, `page=-1`, `size=0` 같은 값이 들어올 수 있다.
+
+이런 값은 음수 offset이나 0으로 나누기 오류를 만들 수 있으므로 Controller에서 최소값을 보정했다.
+
+```java
+if (page < 1) {
+    page = 1;
+}
+
+if (size < 1) {
+    size = 10;
+}
+```
+
+이 보정은 `totalPages`나 `offset`을 계산하기 전에 해야 한다.
+
+### 검색 조건 유지
+
+검색 조건이 있는 상태에서 페이지를 이동할 때 `title`, `category`를 링크에 같이 붙여야 한다.
+
+```jsp
+<a href="/mvc/study-logs?title=${title}&category=${category}&page=${pageNumber}&size=${size}">
+    ${pageNumber}
+</a>
+```
+
+검색 결과 화면에서 페이지를 넘기는 것은 전체 목록의 다음 페이지가 아니라, 현재 검색 결과 안에서 다음 페이지를 보는 행위이다.
+
+따라서 페이지 링크에 검색 조건이 빠지면 사용자가 검색 결과를 보다가 갑자기 전체 목록으로 돌아가는 문제가 생긴다.
+
+### JSP 페이지 번호 출력
+
+`totalPages`를 사용해 JSP에서 페이지 번호 링크를 만들었다.
+
+```jsp
+<c:forEach var="pageNumber" begin="1" end="${totalPages}">
+    <c:choose>
+        <c:when test="${pageNumber == page}">
+            <strong>${pageNumber}</strong>
+        </c:when>
+        <c:otherwise>
+            <a href="/mvc/study-logs?title=${title}&category=${category}&page=${pageNumber}&size=${size}">
+                ${pageNumber}
+            </a>
+        </c:otherwise>
+    </c:choose>
+</c:forEach>
+```
+
+현재 페이지는 링크가 아니라 굵게 표시하고, 다른 페이지는 링크로 이동할 수 있게 했다.
+
+이전/다음 링크도 `page > 1`, `page < totalPages` 조건으로 필요한 경우에만 보여줬다.
+
+### 아직 개선할 수 있는 점
+
+현재 방식은 전체 페이지 수가 많아지면 페이지 번호가 너무 많이 출력된다.
+
+```text
+1 2 3 4 5 6 7 8 9 10 ... 100
+```
+
+실무에서는 보통 현재 페이지 주변의 일부 번호만 보여준다.
+
+```text
+현재 page = 7
+-> 5 6 7 8 9
+```
+
+초반과 마지막 구간에서는 표시할 번호가 부족할 수 있으므로 시작 번호와 끝 번호를 따로 계산해야 한다.
+
+또한 지금은 `page`, `size`, `title`, `category`를 Controller 파라미터로 직접 받고 있는데, 조건이 더 많아지면 검색 조건 DTO나 페이지 요청 객체로 묶는 것도 고려할 수 있다.
+
+### 다시 볼 포인트
+
+- 페이징은 DB 조회량, 서버 메모리, 응답 크기, 브라우저 렌더링 부담을 줄이기 위해 필요하다.
+- `page`는 사용자 기준 페이지 번호이고, `offset`은 DB 기준으로 건너뛸 row 수이다.
+- `offset = (page - 1) * size`로 계산한다.
+- `LIMIT`은 가져올 개수, `OFFSET`은 건너뛸 개수이다.
+- 현재 페이지 목록 조회와 전체 개수 조회는 역할이 다르므로 둘 다 필요하다.
+- `totalPages`는 마지막 페이지와 페이지 번호 링크를 만들기 위해 필요하다.
+- 검색 조건이 있는 페이지 링크에는 `title`, `category`를 같이 붙여야 한다.
+- `page`, `size`는 잘못된 query parameter에 대비해 최소값 보정이 필요하다.
+- JSP의 `<c:forEach>`로 `1`부터 `totalPages`까지 페이지 링크를 만들 수 있다.
+- 페이지 수가 많아지면 현재 페이지 주변 일부만 보여주는 방식으로 개선할 수 있다.
