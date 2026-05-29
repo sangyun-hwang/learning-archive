@@ -58,6 +58,7 @@
 - [Java](Backend/Java.md)
 - [Spring](Backend/Spring.md)
 - [Database / JDBC / MyBatis](Backend/Database.md)
+- [Idempotency](Backend/Idempotency.md)
 
 ## Cloud & Data
 
@@ -85,6 +86,8 @@
 ## Security
 
 - [보안 기초](보안/보안.md)
+- [CSRF](보안/CSRF.md)
+- [Software Supply Chain Attack](보안/SoftwareSupplyChainAttack.md)
 
 ## Architecture
 

@@ -37,7 +37,7 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 | --- | --- | --- |
 | Browser / Runtime | Study Notes | [JavaScript 런타임 구조와 이벤트 루프](cs/FE/Javascript.md#런타임-구조) |
 | Network | Study Notes | [라우터, DNS, 네트워크 기초](cs/네트워크/네트워크.md) |
-| Security | Study Notes | [웹 보안과 암호화 기본 개념](cs/보안/보안.md) |
+| Security | Study Notes | [웹 보안과 암호화 기본 개념](cs/보안/보안.md), [CSRF](cs/보안/CSRF.md), [Software Supply Chain Attack](cs/보안/SoftwareSupplyChainAttack.md) |
 | Architecture | Learning | [DDD, EDA, RPC, gRPC](cs/패턴/Pattern.md) |
 | Storage | Study Notes | [SSD 스케줄링과 내부 동작](cs/ComputerScience/SSD.md) |
 | AI & Tool Use | Study Notes | [Function Calling](cs/AI/FunctionCalling.md), [LLM Guardrails](cs/AI/LLMGuardrails.md), [Prompt Injection](cs/AI/PromptInjection.md), [uvx](cs/Tools/uvx.md) |
@@ -52,6 +52,7 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 | Topic | Status | Notes |
 | --- | --- | --- |
 | Supabase | Basic Study | [Firebase와 Supabase 비교, Database/Auth/Storage/Realtime 개요](cs/Backend/Supabase.md) |
+| API Design | Study Notes | [Idempotency](cs/Backend/Idempotency.md) |
 | WebSocket / Chat | Practice | [react_chat_app](https://github.com/sangyun-hwang/react_chat_app) |
 | Java | Learning | [기초 문법, 객체지향, 컬렉션 개념](cs/Backend/Java.md) |
 | Spring | Learning | [Spring Boot, MVC/JSP, Validation 학습 정리](cs/Backend/Spring.md) |
