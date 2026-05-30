@@ -752,3 +752,79 @@ MyBatis는 Mapper 인터페이스와 XML Mapper를 통해 SQL과 Java 메서드�
 - `<set>`은 동적 UPDATE에서 `SET` 절과 마지막 콤마 정리를 도와준다.
 - 동적 UPDATE는 요청에 포함된 필드만 수정하는 PATCH 방식과 잘 맞는다.
 - 사용하지 않는 Mapper 메서드와 XML SQL은 정리해야 한다.
+
+## MyBatis `#{}`와 `${}` 바인딩 차이
+날짜: 2026-05-31
+분류: Database / MyBatis / SQL Binding
+상태: 이해 중
+
+### 질문
+
+MyBatis에서 `#{}`와 `${}`는 각각 언제 사용해야 할까?
+
+### `#{}` 값 바인딩
+
+`#{}`는 값을 안전하게 바인딩할 때 사용한다.
+
+MyBatis가 내부적으로 PreparedStatement의 `?` 자리처럼 처리해주기 때문에, 문자열 따옴표 처리나 SQL Injection 방어에 유리하다.
+
+```xml
+WHERE id = #{id}
+WHERE title LIKE CONCAT('%', #{title}, '%')
+LIMIT #{size}
+OFFSET #{offset}
+```
+
+주로 사용자가 입력한 값이나 일반 데이터 값에 사용한다.
+
+### `${}` 문자열 치환
+
+`${}`는 값을 바인딩하는 것이 아니라 SQL 문장 조각을 그대로 끼워 넣는다.
+
+```xml
+ORDER BY ${sort} ${direction}
+```
+
+예를 들어 `sort = minutes`, `direction = DESC`라면 실제 SQL은 아래처럼 만들어진다.
+
+```sql
+ORDER BY minutes DESC
+```
+
+컬럼명이나 정렬 방향처럼 SQL 문법 자체가 들어가야 하는 경우에는 `#{}`가 아니라 `${}`가 필요하다.
+
+### 왜 `ORDER BY #{sort}`는 원하는 대로 동작하지 않았나
+
+`ORDER BY #{sort}`는 컬럼명을 넣는 것이 아니라 값 하나를 바인딩하는 방식으로 처리된다.
+
+즉 `ORDER BY minutes`처럼 컬럼 기준 정렬이 되는 것이 아니라, `ORDER BY 'minutes'`처럼 문자열 값을 기준으로 정렬하려는 모양이 된다.
+
+그래서 URL은 바뀌어도 실제 데이터 정렬이 바뀌지 않을 수 있다.
+
+### 주의할 점
+
+`${}`는 SQL 문장에 문자열을 그대로 넣기 때문에 SQL Injection 위험이 있다.
+
+따라서 사용자가 직접 보낸 문자열을 그대로 `${}`에 넣으면 안 된다.
+
+현재 학습 코드처럼 enum으로 허용 가능한 값만 제한한 뒤 사용해야 한다.
+
+```java
+public enum StudyLogsSort {
+    id,
+    minutes,
+    title
+}
+
+public enum SortingDirection {
+    ASC,
+    DESC
+}
+```
+
+### 다시 볼 포인트
+
+- 데이터 값은 `#{}`를 사용한다.
+- SQL 문법 조각은 `${}`를 사용한다.
+- `${}`는 반드시 enum이나 whitelist로 허용 값을 제한한 뒤 사용한다.
+- 정렬 기능에서 컬럼명과 정렬 방향은 SQL 문법 조각이므로 `${sort}`, `${direction}`을 사용한다.
