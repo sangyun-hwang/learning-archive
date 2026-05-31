@@ -1748,3 +1748,183 @@ if (size < 1) {
 - `page`, `size`는 잘못된 query parameter에 대비해 최소값 보정이 필요하다.
 - JSP의 `<c:forEach>`로 `1`부터 `totalPages`까지 페이지 링크를 만들 수 있다.
 - 페이지 수가 많아지면 현재 페이지 주변 일부만 보여주는 방식으로 개선할 수 있다.
+
+## Stage 10 Spring Security 로그인과 권한 처리
+날짜: 2026-06-01
+분류: Backend / Spring Security
+상태: 이해 중
+
+### 질문
+
+직접 만든 세션 로그인과 Interceptor 기반 접근 제한을 Spring Security 방식으로 바꾸면 요청 흐름과 책임이 어떻게 달라질까?
+
+### 요청 흐름 변화
+
+Spring Security를 추가하면 기존 MVC 요청 흐름 앞에 Security Filter가 먼저 동작한다.
+
+```text
+브라우저 요청
+-> Spring Security Filter
+-> Spring MVC Interceptor
+-> Controller
+```
+
+기존에는 Interceptor에서 직접 로그인 여부를 확인했지만, Security를 적용한 뒤에는 인증과 인가 처리를 Security FilterChain이 먼저 맡는다.
+
+### SecurityFilterChain
+
+`SecurityFilterChain`은 HTTP 요청에 적용할 보안 규칙을 정의한다.
+
+예를 들어 어떤 URL은 모두 접근 가능하게 하고, 어떤 URL은 로그인 사용자만 접근 가능하게 하며, 어떤 URL은 ADMIN 권한만 접근 가능하게 설정한다.
+
+```java
+.authorizeHttpRequests(auth -> auth
+        .requestMatchers("/mvc/login").permitAll()
+        .requestMatchers("/mvc/study-logs/*/delete").hasRole("ADMIN")
+        .requestMatchers("/mvc/study-logs/**").authenticated()
+        .anyRequest().permitAll()
+)
+```
+
+규칙은 위에서 아래로 평가되므로 더 구체적인 URL 규칙을 먼저 작성해야 한다.
+
+### UserDetailsService
+
+`UserDetailsService`는 Spring Security가 로그인할 사용자 정보를 어디서 가져올지 알려주는 역할을 한다.
+
+이번 학습에서는 DB가 아니라 메모리에 임시 사용자를 등록했다.
+
+```java
+UserDetails student = User.withUsername("student")
+        .password(passwordEncoder.encode("1234"))
+        .roles("USER")
+        .build();
+
+UserDetails admin = User.withUsername("admin")
+        .password(passwordEncoder.encode("1234"))
+        .roles("ADMIN")
+        .build();
+
+return new InMemoryUserDetailsManager(student, admin);
+```
+
+실무에서는 보통 `UserDetailsService`가 DB에서 사용자 정보를 조회하도록 만든다.
+
+### PasswordEncoder와 BCrypt
+
+`PasswordEncoder`는 비밀번호를 어떤 방식으로 해시하고 검증할지 정한다.
+
+이번 학습에서는 `BCryptPasswordEncoder`를 사용했다.
+
+```java
+@Bean
+public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+}
+```
+
+BCrypt는 비밀번호를 복구 가능한 암호문으로 저장하지 않고, 비교 가능한 해시값으로 저장한다.
+
+로그인할 때는 사용자가 입력한 비밀번호와 저장된 해시를 비교한다.
+
+### loginPage와 loginProcessingUrl
+
+`loginPage("/mvc/login")`은 로그인 화면을 보여줄 GET 페이지 주소이다.
+
+`loginProcessingUrl("/mvc/login")`은 로그인 form이 POST 요청을 보내는 처리 주소이다.
+
+```java
+.formLogin(form -> form
+        .loginPage("/mvc/login")
+        .loginProcessingUrl("/mvc/login")
+        .defaultSuccessUrl("/mvc/study-logs", true)
+        .permitAll()
+)
+```
+
+같은 `/mvc/login` 주소를 써도 GET은 화면 표시, POST는 Security 로그인 처리로 역할이 다르다.
+
+### CSRF 토큰
+
+Spring Security는 기본적으로 form POST 요청에 CSRF 토큰을 요구한다.
+
+CSRF 토큰은 사용자가 의도해서 현재 사이트의 form을 제출한 것인지 확인하는 방어 장치이다.
+
+따라서 로그인, 로그아웃, 삭제 같은 POST form에는 hidden input으로 토큰을 함께 보내야 한다.
+
+```jsp
+<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+```
+
+권한이 맞아도 CSRF 토큰이 없으면 POST 요청이 먼저 막힐 수 있다.
+
+### authenticated와 hasRole
+
+`authenticated()`는 로그인한 사용자라면 통과시킨다.
+
+`hasRole("ADMIN")`은 로그인했고 ADMIN 역할을 가진 사용자만 통과시킨다.
+
+`.roles("ADMIN")`으로 등록한 역할은 내부적으로 `ROLE_ADMIN` 권한명으로 저장된다.
+
+설정에서는 보통 `hasRole("ADMIN")`처럼 `ROLE_` 접두사를 빼고 쓴다.
+
+### JSP sec:authorize
+
+JSP에서 Spring Security 권한에 따라 화면 요소를 보여주려면 Security taglib를 사용할 수 있다.
+
+```jsp
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+
+<sec:authorize access="hasRole('ADMIN')">
+    <button type="submit">Delete</button>
+</sec:authorize>
+```
+
+이를 사용하려면 `spring-security-taglibs` 의존성이 필요하다.
+
+```gradle
+implementation 'org.springframework.security:spring-security-taglibs'
+```
+
+`sec:authorize`는 화면 표시 제어이고, 실제 보안은 서버의 `SecurityFilterChain`에서 막아야 한다.
+
+버튼을 숨기는 것은 UX이고, 서버에서 URL 접근을 막는 것이 보안이다.
+
+### 직접 세션 로그인과 Spring Security 방식의 차이
+
+기존 방식은 개발자가 직접 세션에 로그인 정보를 넣고 확인했다.
+
+```java
+session.setAttribute("loginUser", username);
+```
+
+그리고 Interceptor에서 `loginUser`가 있는지 직접 확인했다.
+
+Spring Security 방식에서는 인증 성공 후 Security가 인증 정보를 관리한다.
+
+따라서 Controller에서 `loginUser`를 직접 세션에 넣거나, Interceptor에서 직접 확인하는 코드가 필요 없어졌다.
+
+### 아직 부족한 점
+
+이번 단계에서는 학습을 위해 사용자를 메모리에 등록했다.
+
+실무에 가까워지려면 다음 단계가 필요하다.
+
+- 사용자 정보를 DB에 저장한다.
+- 회원가입을 구현한다.
+- DB에서 사용자 정보를 조회하는 `UserDetailsService`를 만든다.
+- 권한 정보를 DB와 연결한다.
+- 비밀번호 변경, 계정 잠금, 로그인 실패 처리 등을 다룬다.
+
+### 다시 볼 포인트
+
+- Spring Security를 추가하면 요청 앞단에 Security Filter가 동작한다.
+- `SecurityFilterChain`은 URL별 인증/인가 규칙을 정의한다.
+- `UserDetailsService`는 사용자 정보를 어디서 가져올지 담당한다.
+- `PasswordEncoder`는 비밀번호 해시와 검증 방식을 담당한다.
+- `loginPage`는 로그인 화면 주소이고, `loginProcessingUrl`은 로그인 처리 주소이다.
+- form POST 요청에는 CSRF 토큰이 필요하다.
+- `authenticated()`는 로그인 여부, `hasRole("ADMIN")`은 역할까지 확인한다.
+- `.roles("ADMIN")`은 내부적으로 `ROLE_ADMIN`으로 저장된다.
+- JSP의 `<sec:authorize>`는 화면 표시 제어이며, 서버 권한 체크를 대체할 수 없다.
+- 직접 세션을 다루던 로그인 코드는 Security가 인증 상태를 관리하도록 정리할 수 있다.
