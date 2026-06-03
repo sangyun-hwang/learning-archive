@@ -1928,3 +1928,218 @@ Spring Security 방식에서는 인증 성공 후 Security가 인증 정보를 �
 - `.roles("ADMIN")`은 내부적으로 `ROLE_ADMIN`으로 저장된다.
 - JSP의 `<sec:authorize>`는 화면 표시 제어이며, 서버 권한 체크를 대체할 수 없다.
 - 직접 세션을 다루던 로그인 코드는 Security가 인증 상태를 관리하도록 정리할 수 있다.
+
+## Stage 11 DB 기반 로그인과 회원가입
+날짜: 2026-06-03
+분류: Backend / Spring Security / MyBatis / Signup
+상태: 이해 중
+
+### 질문
+
+InMemory 사용자 등록에서 DB 기반 사용자 조회로 바꾸고, 회원가입까지 연결하면 로그인 흐름과 책임 분리는 어떻게 달라질까?
+
+### InMemory 로그인과 DB 기반 로그인
+
+Stage 10에서는 `InMemoryUserDetailsManager`에 사용자를 코드로 직접 등록했다.
+
+```java
+student / 1234 / USER
+admin / 1234 / ADMIN
+```
+
+이 방식은 학습과 테스트에는 간단하지만, 사용자를 코드에 고정해야 하므로 회원가입, 탈퇴, 권한 변경 같은 기능을 유연하게 처리하기 어렵다.
+
+Stage 11에서는 사용자 정보를 `users` 테이블에 저장하고, 로그인 시 DB에서 사용자 정보를 조회하도록 변경했다.
+
+### users 테이블
+
+`users` 테이블은 로그인에 필요한 사용자 정보를 저장한다.
+
+```sql
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    enabled BOOLEAN NOT NULL
+);
+```
+
+각 컬럼의 역할은 다음과 같다.
+
+- `id`: 내부 식별자
+- `username`: 로그인 ID
+- `password`: BCrypt로 해시된 비밀번호
+- `role`: `ROLE_USER`, `ROLE_ADMIN` 같은 권한
+- `enabled`: 계정 활성화 여부
+
+### 로그인 조회 흐름
+
+로그인 요청이 들어오면 Spring Security는 `UserDetailsService.loadUserByUsername(username)`을 호출한다.
+
+우리가 만든 `DbUserDetailsService`는 `UserMapper.findByUsername(username)`으로 DB에서 사용자를 조회한다.
+
+```java
+AppUser appUser = userMapper.findByUsername(username);
+```
+
+사용자가 없으면 `UsernameNotFoundException`을 던지고, 사용자가 있으면 Spring Security가 이해할 수 있는 `UserDetails`로 변환한다.
+
+```java
+return User.withUsername(appUser.getUsername())
+        .password(appUser.getPassword())
+        .authorities(appUser.getRole())
+        .disabled(!appUser.isEnabled())
+        .build();
+```
+
+DB에 `ROLE_USER`, `ROLE_ADMIN`처럼 이미 `ROLE_`이 붙은 값이 저장되어 있으므로 `.roles()`가 아니라 `.authorities()`를 사용했다.
+
+### PasswordEncoder의 역할
+
+회원가입에서는 사용자가 입력한 평문 비밀번호를 BCrypt 해시로 바꿔 저장한다.
+
+```java
+String encodedPassword = passwordEncoder.encode(request.getPassword());
+```
+
+로그인에서는 입력한 비밀번호와 DB에 저장된 BCrypt 해시가 맞는지 검증한다.
+
+단순히 입력값을 다시 해시해서 문자열 비교하는 것이 아니라, Spring Security가 `PasswordEncoder.matches(rawPassword, encodedPassword)` 방식으로 비교한다.
+
+BCrypt는 같은 비밀번호라도 매번 다른 해시가 나올 수 있으므로 이 차이를 이해해야 한다.
+
+### SignupRequest와 ModelAttribute
+
+JSP form 데이터를 `@ModelAttribute SignupRequest`로 받기 위해 DTO에는 기본 생성자와 setter가 필요하다.
+
+Spring은 form 요청을 받을 때 대략 다음 흐름으로 값을 채운다.
+
+```java
+SignupRequest request = new SignupRequest();
+request.setUsername(username);
+request.setPassword(password);
+```
+
+그래서 `SignupRequest`에는 기본 생성자, getter, setter를 두었다.
+
+입력값 검증은 `@NotBlank`, `@Size`로 처리했다.
+
+```java
+@NotBlank(message = "username is required")
+@Size(min = 3, max = 20, message = "username must be between 3 and 20 characters")
+private String username;
+
+@NotBlank(message = "password is required")
+@Size(min = 4, max = 30, message = "password must be between 4 and 30 characters")
+private String password;
+```
+
+### 회원가입 흐름
+
+회원가입은 로그인과 달리 DB에 새 사용자 row를 만드는 기능이다.
+
+```text
+GET /mvc/signup
+-> 회원가입 form 표시
+
+POST /mvc/signup
+-> SignupRequest 검증
+-> username 중복 확인
+-> password BCrypt 해시
+-> role은 ROLE_USER로 지정
+-> enabled는 true로 지정
+-> users 테이블에 INSERT
+-> /mvc/login?signupSuccess로 redirect
+```
+
+사용자가 role과 enabled를 직접 보내지 않게 한 이유는, 권한과 계정 상태는 사용자가 결정할 값이 아니라 서버 정책으로 정해야 하는 값이기 때문이다.
+
+### 중복 username 처리
+
+`username`은 로그인 식별자이므로 중복되면 안 된다.
+
+회원가입 전에 Service에서 먼저 중복을 확인했다.
+
+```java
+public boolean isUsernameDuplicated(String username) {
+    AppUser existingUser = userMapper.findByUsername(username);
+    return existingUser != null;
+}
+```
+
+사전 중복 체크는 사용자에게 자연스럽게 오류 메시지를 보여주기 위한 UX 방어이다.
+
+DB의 `UNIQUE` 제약은 동시에 같은 username 가입 요청이 들어오는 경우까지 막는 최종 데이터 무결성 방어선이다.
+
+즉, 검증은 여러 단계로 둔다.
+
+```text
+프론트 검증: 빠른 사용자 피드백
+백엔드 검증: 신뢰할 수 없는 요청 차단
+DB 제약: 최종 데이터 무결성 보장
+```
+
+### Controller, Service, Mapper 역할 분리
+
+회원가입 로직은 Controller에서 Service로 분리했다.
+
+```text
+SignupPageController
+-> 요청/응답 흐름, 검증 실패 시 화면 처리
+
+SignupService
+-> 중복 username 확인, 비밀번호 해시, 기본 role/enabled 지정
+
+UserMapper
+-> users 테이블 조회와 저장
+```
+
+`@Controller`, `@Service`, `@Mapper`, `@Bean`으로 등록된 객체들은 Spring Bean으로 관리된다.
+
+생성자 파라미터에 필요한 Bean 타입을 적으면 Spring이 자동으로 찾아서 주입한다.
+
+이것이 의존성 주입, DI이다.
+
+### 실패 시 입력값 유지
+
+회원가입 실패 시 사용자가 입력한 username은 다시 보여주고, password는 다시 보여주지 않았다.
+
+```jsp
+<input type="text" name="username" value="${signupRequest.username}">
+<input type="password" name="password">
+```
+
+username은 다시 입력하는 번거로움을 줄이기 위해 유지한다.
+
+password는 민감한 값이므로 실패 후 다시 화면에 출력하지 않는 것이 좋다.
+
+### 아직 부족한 점
+
+현재 회원가입/로그인은 기본 흐름을 학습하기 위한 형태이다.
+
+실무에 가까워지려면 다음 요소들이 더 필요하다.
+
+- 비밀번호 확인 입력
+- 더 강한 비밀번호 정책
+- 이메일 또는 휴대폰 인증
+- OAuth 로그인
+- 비밀번호 변경과 재설정
+- 계정 잠금, 비활성화, 탈퇴 처리
+- role을 별도 테이블로 분리
+- 중복 가입 경쟁 상황에 대한 예외 처리
+- 로그인 실패 횟수 제한
+
+### 다시 볼 포인트
+
+- InMemory 로그인은 코드에 사용자를 고정하고, DB 기반 로그인은 users 테이블에서 사용자를 조회한다.
+- `UserMapper.findByUsername()`은 DB에서 username으로 사용자 row를 조회한다.
+- `DbUserDetailsService`는 DB 사용자 정보를 Spring Security의 `UserDetails`로 변환한다.
+- DB 비밀번호는 평문이 아니라 BCrypt 해시로 저장해야 한다.
+- 회원가입에서는 `PasswordEncoder.encode()`로 비밀번호를 해시한다.
+- 로그인에서는 `PasswordEncoder.matches()` 흐름으로 입력 비밀번호와 저장 해시를 검증한다.
+- `@ModelAttribute` form DTO에는 기본 생성자와 setter가 필요하다.
+- role과 enabled는 사용자가 아니라 서버에서 정해야 한다.
+- 사전 중복 체크는 UX이고, DB UNIQUE 제약은 최종 방어선이다.
+- Controller는 요청/응답, Service는 비즈니스 로직, Mapper는 DB 접근을 담당한다.
+- 실패 화면에서 username은 유지하고 password는 유지하지 않는 것이 좋다.
