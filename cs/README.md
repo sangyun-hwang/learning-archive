@@ -58,6 +58,8 @@
 - [Java](Backend/Java.md)
 - [Spring](Backend/Spring.md)
 - [Database / JDBC / MyBatis](Backend/Database.md)
+- [DB Sequence](Backend/DatabaseSequence.md)
+- [Redis](Backend/Redis.md)
 - [Idempotency](Backend/Idempotency.md)
 
 ## Cloud & Data
@@ -73,6 +75,7 @@
 
 - [Function Calling](AI/FunctionCalling.md)
 - [LLM Guardrails](AI/LLMGuardrails.md)
+- [Ontology](AI/Ontology.md)
 - [Prompt Injection](AI/PromptInjection.md)
 
 ## Development Tools
