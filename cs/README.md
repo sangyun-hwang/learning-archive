@@ -57,9 +57,12 @@
 - [Supabase](Backend/Supabase.md)
 - [Java](Backend/Java.md)
 - [Spring](Backend/Spring.md)
+- [Database Basics](Backend/DatabaseBasics.md)
+- [Database Relationships](Backend/DatabaseRelationships.md)
 - [Database / JDBC / MyBatis](Backend/Database.md)
 - [DB Sequence](Backend/DatabaseSequence.md)
 - [Redis](Backend/Redis.md)
+- [UUID / GUID](Backend/UUID.md)
 - [Idempotency](Backend/Idempotency.md)
 
 ## Cloud & Data
