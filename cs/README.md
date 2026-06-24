@@ -57,6 +57,7 @@
 - [Supabase](Backend/Supabase.md)
 - [Java](Backend/Java.md)
 - [Spring](Backend/Spring.md)
+- [Monolith and Modular Monolith](Backend/ModularMonolith.md)
 - [Database Basics](Backend/DatabaseBasics.md)
 - [Database Relationships](Backend/DatabaseRelationships.md)
 - [Database / JDBC / MyBatis](Backend/Database.md)
@@ -73,6 +74,7 @@
 ## Storage
 
 - [SSD 스케줄링과 내부 동작](ComputerScience/SSD.md)
+- [Fenwick Tree](ComputerScience/FenwickTree.md)
 
 ## AI & Tool Use
 
@@ -88,6 +90,7 @@
 ## Network
 
 - [네트워크 기초](네트워크/네트워크.md)
+- [Gateway](네트워크/Gateway.md)
 
 ## Security
 
