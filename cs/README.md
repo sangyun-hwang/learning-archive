@@ -57,6 +57,7 @@
 - [Supabase](Backend/Supabase.md)
 - [Java](Backend/Java.md)
 - [Spring](Backend/Spring.md)
+- [Microservice Architecture](Backend/Microservices.md)
 - [Monolith and Modular Monolith](Backend/ModularMonolith.md)
 - [Database Basics](Backend/DatabaseBasics.md)
 - [Database Relationships](Backend/DatabaseRelationships.md)
@@ -79,7 +80,9 @@
 ## AI & Tool Use
 
 - [Function Calling](AI/FunctionCalling.md)
+- [Hermes Agent](AI/HermesAgent.md)
 - [LLM Guardrails](AI/LLMGuardrails.md)
+- [Loop Engineering](AI/LoopEngineering.md)
 - [Ontology](AI/Ontology.md)
 - [Prompt Injection](AI/PromptInjection.md)
 
