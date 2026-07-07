@@ -42,6 +42,8 @@
   - 메모이제이션
   - Effect
 - [HTML](FE/HTML.md)
+- [Browser Rendering](FE/BrowserRendering.md)
+- [Event Loop](FE/EventLoop.md)
 - [Next.js](FE/Next.js/next.js.md)
 - [App Router](FE/Next.js/app-router.md)
 - [SEO](SEO/SEO.md)
@@ -84,6 +86,7 @@
 - [LLM Guardrails](AI/LLMGuardrails.md)
 - [Loop Engineering](AI/LoopEngineering.md)
 - [Ontology](AI/Ontology.md)
+- [OpenCode](AI/OpenCode.md)
 - [Prompt Injection](AI/PromptInjection.md)
 
 ## Development Tools
