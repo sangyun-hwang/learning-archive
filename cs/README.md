@@ -82,6 +82,7 @@
 
 ## AI & Tool Use
 
+- [AX and AI Integration](AI/AgentExperience.md)
 - [Function Calling](AI/FunctionCalling.md)
 - [Hermes Agent](AI/HermesAgent.md)
 - [LLM Guardrails](AI/LLMGuardrails.md)
