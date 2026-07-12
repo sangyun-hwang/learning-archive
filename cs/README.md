@@ -90,6 +90,7 @@
 - [Ontology](AI/Ontology.md)
 - [OpenCode](AI/OpenCode.md)
 - [Prompt Injection](AI/PromptInjection.md)
+- [Sovereign AI](AI/SovereignAI.md)
 
 ## Development Tools
 
