@@ -40,7 +40,7 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 | Security | Study Notes | [웹 보안과 암호화 기본 개념](cs/보안/보안.md), [CSRF](cs/보안/CSRF.md), [Software Supply Chain Attack](cs/보안/SoftwareSupplyChainAttack.md) |
 | Architecture | Learning | [DDD, EDA, RPC, gRPC](cs/패턴/Pattern.md), [MSA](cs/Backend/Microservices.md), [Monolith and Modular Monolith](cs/Backend/ModularMonolith.md) |
 | Storage | Study Notes | [SSD 스케줄링과 내부 동작](cs/ComputerScience/SSD.md), [Fenwick Tree](cs/ComputerScience/FenwickTree.md) |
-| AI & Tool Use | Study Notes | [AX and AI Integration](cs/AI/AgentExperience.md), [Function Calling](cs/AI/FunctionCalling.md), [Hermes Agent](cs/AI/HermesAgent.md), [LLM Guardrails](cs/AI/LLMGuardrails.md), [Loop Engineering](cs/AI/LoopEngineering.md), [Ontology](cs/AI/Ontology.md), [OpenCode](cs/AI/OpenCode.md), [Prompt Injection](cs/AI/PromptInjection.md), [Sovereign AI](cs/AI/SovereignAI.md), [uvx](cs/Tools/uvx.md) |
+| AI & Tool Use | Study Notes | [AX and AI Integration](cs/AI/AgentExperience.md), [Function Calling](cs/AI/FunctionCalling.md), [Hermes Agent](cs/AI/HermesAgent.md), [LLM Guardrails](cs/AI/LLMGuardrails.md), [Loop Engineering](cs/AI/LoopEngineering.md), [MCP Transport](cs/AI/MCPTransport.md), [Ontology](cs/AI/Ontology.md), [OpenCode](cs/AI/OpenCode.md), [Prompt Injection](cs/AI/PromptInjection.md), [Sovereign AI](cs/AI/SovereignAI.md), [uvx](cs/Tools/uvx.md) |
 | Information Processing | Study Notes | [정보처리기사 이론](cs/정보처리기사/정보처리기사_이론.md), [프로그래밍](cs/정보처리기사/정보처리기사_프로그래밍.md) |
 
 더 자세한 목차는 [CS 정리](cs/README.md)에서 관리합니다.

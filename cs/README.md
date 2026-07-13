@@ -87,6 +87,7 @@
 - [Hermes Agent](AI/HermesAgent.md)
 - [LLM Guardrails](AI/LLMGuardrails.md)
 - [Loop Engineering](AI/LoopEngineering.md)
+- [MCP Transport: stdio, SSE, Streamable HTTP](AI/MCPTransport.md)
 - [Ontology](AI/Ontology.md)
 - [OpenCode](AI/OpenCode.md)
 - [Prompt Injection](AI/PromptInjection.md)
