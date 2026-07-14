@@ -22,7 +22,7 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 | --- | --- | --- |
 | JavaScript | Study Notes | [데이터 타입, 함수, 클래스, 클로저, 런타임 구조](cs/FE/Javascript.md), [이벤트 루프](cs/FE/EventLoop.md) |
 | TypeScript | Study Notes | [기본 타입, 제네릭, React를 위한 타입스크립트](cs/FE/Typescript.md) |
-| React | Study Notes | [JSX, Virtual DOM, Fiber, 렌더링, 메모이제이션, Effect, useEffect 의존성 배열](cs/FE/React.md) |
+| React | Study Notes | [JSX, Virtual DOM, Fiber, 렌더링, 메모이제이션, useEffect와 Effect 생명주기](cs/FE/React.md) |
 | Next.js / SSR | Practice | [Next.js 정리](cs/FE/Next.js/next.js.md), [App Router](cs/FE/Next.js/app-router.md), [SSR Practice](https://github.com/sangyun-hwang/react-ssr-practice-without-nextjs) |
 | Testing | Learning | [Cypress 설치, 테스트 구조, 커맨드, Assertion, intercept](cs/FE/Cypress.md) |
 | State Management | Practice | [React Query, Redux, RTK 정리](cs/FE/StateManagement.md) |

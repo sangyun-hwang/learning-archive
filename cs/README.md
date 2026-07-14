@@ -41,7 +41,7 @@
   - 렌더링
   - 메모이제이션
   - Effect
-  - useEffect 의존성 배열
+  - useEffect, Effect 생명주기와 의존성 배열
 - [HTML](FE/HTML.md)
 - [Browser Rendering](FE/BrowserRendering.md)
 - [Event Loop](FE/EventLoop.md)
