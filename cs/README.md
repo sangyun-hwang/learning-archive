@@ -33,6 +33,7 @@
   - any, unknown, never
   - 제네릭
   - React를 위한 타입스크립트
+  - TypeScript 7.0 네이티브 컴파일러와 마이그레이션
 - [React](FE/React.md)
   - 왜 React인가?
   - JSX
