@@ -59,9 +59,127 @@ React에서는 주로 다음 API를 사용합니다.
 
 - `React.memo`: props가 같으면 컴포넌트 렌더링 결과를 재사용합니다.
 - `useMemo`: 비용이 큰 계산 결과를 기억합니다.
-- `useCallback`: 함수를 재생성하지 않고 참조를 유지합니다.
+- `useCallback`: 의존성이 같을 때 이전 함수의 참조를 반환합니다.
 
 메모이제이션은 비교 비용과 메모리 비용이 있으므로 모든 곳에 적용하기보다 렌더링 비용이 크거나 참조 안정성이 필요한 지점에 적용합니다.
+
+### useCallback
+
+`useCallback`은 렌더링 사이에서 함수 정의를 캐싱하는 Hook입니다.
+
+```tsx
+const handleSubmit = useCallback(() => {
+  saveProduct(productId);
+}, [productId]);
+```
+
+최초 렌더링에는 전달한 함수를 그대로 반환합니다. 이후에는 의존성을 이전 값과 `Object.is`로 비교해, 값이 모두 같으면 이전 함수 참조를 반환하고 하나라도 바뀌면 현재 렌더링에서 전달한 함수를 반환합니다.
+
+`useCallback`은 함수를 실행하지 않으며 함수의 실행 결과를 저장하지도 않습니다. 또한 렌더링 중 함수 표현식이 만들어지는 것 자체를 막는 것이 아니라, 의존성이 같을 때 새로 전달된 함수를 무시하고 이전 함수 참조를 돌려줍니다.
+
+#### React.memo와 함께 사용하는 경우
+
+JavaScript에서 함수 표현식은 실행될 때마다 새로운 함수 객체를 만듭니다.
+
+```tsx
+function Parent() {
+  function handleSubmit() {
+    // 저장 처리
+  }
+
+  return <Child onSubmit={handleSubmit} />;
+}
+```
+
+부모가 다시 렌더링되면 `handleSubmit`은 이전과 동작이 같아도 참조가 달라집니다. 이 함수를 props로 받은 자식이 `memo`로 감싸져 있다면, 함수 참조가 달라 props가 변경된 것으로 판단하므로 렌더링을 건너뛸 수 없습니다.
+
+```tsx
+const Child = memo(function Child({ onSubmit }) {
+  return <button onClick={onSubmit}>저장</button>;
+});
+
+function Parent({ productId }) {
+  const handleSubmit = useCallback(() => {
+    saveProduct(productId);
+  }, [productId]);
+
+  return <Child onSubmit={handleSubmit} />;
+}
+```
+
+`productId`가 같다면 `handleSubmit`의 참조도 유지되므로 `Child`는 같은 props를 받았다고 판단해 불필요한 렌더링을 건너뛸 수 있습니다.
+
+`useCallback`만 사용한다고 자식의 렌더링이 자동으로 방지되지는 않습니다. 자식이 `memo`로 감싸져 있거나 함수가 다른 Hook의 의존성으로 사용되는 등 참조 안정성이 필요한 이유가 있어야 의미가 있습니다.
+
+#### 의존성과 stale closure
+
+callback 내부에서 사용하는 props, state 등 반응형 값은 의존성 배열에 포함해야 합니다.
+
+```tsx
+// userId가 바뀌어도 처음 렌더링의 값을 계속 사용할 수 있다.
+const saveUser = useCallback(() => {
+  save(userId);
+}, []);
+```
+
+위 코드에서 `userId`를 빠뜨리면 함수가 처음 렌더링의 값을 캡처한 stale closure가 될 수 있습니다.
+
+```tsx
+const saveUser = useCallback(() => {
+  save(userId);
+}, [userId]);
+```
+
+의존성은 함수를 오래 유지하기 위해 임의로 제거하는 값이 아닙니다. callback이 현재 값을 읽는다면 기본적으로 의존성에 포함해야 합니다.
+
+#### State updater로 의존성 줄이기
+
+다음 상태를 만들기 위해 현재 state를 읽기만 한다면 state updater 함수를 사용해 의존성을 줄일 수 있습니다.
+
+```tsx
+const addTodo = useCallback((text) => {
+  setTodos((previousTodos) => [
+    ...previousTodos,
+    { id: nextId++, text },
+  ]);
+}, []);
+```
+
+`setTodos`에 업데이트 방법을 전달하므로 callback이 `todos`를 직접 읽지 않아도 됩니다. 따라서 `todos`가 변경될 때마다 함수 참조를 새로 만들 필요가 없습니다.
+
+#### useMemo와의 차이
+
+```tsx
+const visibleTodos = useMemo(
+  () => filterTodos(todos, filter),
+  [todos, filter],
+);
+
+const handleSubmit = useCallback(
+  () => saveProduct(productId),
+  [productId],
+);
+```
+
+- `useMemo`: 전달한 함수를 실행해 계산한 **결과 값**을 캐싱합니다.
+- `useCallback`: 전달한 **함수 자체**를 캐싱하고, 실행은 실제 호출 시점에 이루어집니다.
+
+#### 언제 사용하는가?
+
+- `memo`로 최적화한 자식에게 함수를 props로 전달할 때
+- 함수가 `useEffect`, `useMemo`, 다른 `useCallback`의 의존성일 때
+- Custom Hook이 외부에 안정적인 함수 참조를 반환할 때
+
+모든 함수에 습관적으로 적용하면 의존성 관리가 복잡해지고 코드를 읽기 어려워질 수 있습니다. 실제 렌더링 비용이나 참조 안정성 문제가 있는지 확인한 뒤 성능 최적화로 사용합니다. React Compiler를 사용하는 환경에서는 값과 함수를 자동으로 메모이제이션하므로 수동 `useCallback`의 필요성이 줄어들 수 있습니다.
+
+면접에서는 다음처럼 정리해서 말할 수 있습니다.
+
+> `useCallback`은 함수의 실행 결과가 아니라 함수 자체의 참조를 의존성이 바뀔 때까지 유지하는 Hook입니다. 주로 memo로 감싼 자식에게 callback을 전달하거나 다른 Hook의 의존성으로 사용할 때 필요합니다. 의존성을 빠뜨리면 stale closure가 생길 수 있고, 모든 함수에 적용한다고 렌더링이 자동으로 줄어드는 것은 아닙니다.
+
+### 참고
+
+- [useCallback](https://react.dev/reference/react/useCallback)
+- [memo](https://react.dev/reference/react/memo)
 
 ## Effect
 
