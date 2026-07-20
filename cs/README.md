@@ -47,6 +47,7 @@
 - [Browser Rendering](FE/BrowserRendering.md)
 - [Event Loop](FE/EventLoop.md)
 - [AbortController](FE/AbortController.md)
+- [File System Access API](FE/FileSystemAccess.md)
 - [Next.js](FE/Next.js/next.js.md)
 - [App Router](FE/Next.js/app-router.md)
 - [SEO](SEO/SEO.md)

@@ -27,7 +27,7 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 | Testing | Learning | [Cypress 설치, 테스트 구조, 커맨드, Assertion, intercept](cs/FE/Cypress.md) |
 | State Management | Practice | [React Query, Redux, RTK 정리](cs/FE/StateManagement.md) |
 | Monorepo | Practice | [Monorepo 구조, Workspace, Turborepo](cs/FE/Monorepo.md) |
-| HTML / Web | Study Notes | [HTML 시맨틱 태그](cs/FE/HTML.md), [브라우저 렌더링 과정](cs/FE/BrowserRendering.md), [SEO](cs/SEO/SEO.md) |
+| HTML / Web | Study Notes | [HTML 시맨틱 태그](cs/FE/HTML.md), [브라우저 렌더링 과정](cs/FE/BrowserRendering.md), [File System Access API](cs/FE/FileSystemAccess.md), [SEO](cs/SEO/SEO.md) |
 
 ## CS
 
