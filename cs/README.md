@@ -21,6 +21,7 @@
 - [JavaScript](FE/Javascript.md)
   - 데이터 타입과 동등 비교
   - 함수, 클래스, 클로저
+  - 스코프, scope chain, shadowing, TDZ
   - 이벤트 루프와 비동기 통신
   - React에서 자주 사용하는 JavaScript 문법
   - 클린코드

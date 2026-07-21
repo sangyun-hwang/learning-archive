@@ -74,6 +74,252 @@ class User {
 - static method: 클래스 자체에서 호출합니다.
 - `extends`, `super`: 상속 관계에서 부모 클래스의 생성자와 메서드를 호출합니다.
 
+## 스코프
+
+스코프는 변수와 함수 같은 식별자에 접근할 수 있는 코드의 범위입니다.
+
+```js
+function greet() {
+  const message = 'hello';
+  console.log(message);
+}
+
+greet();
+console.log(message); // ReferenceError
+```
+
+`message`는 `greet`의 함수 스코프 안에서만 접근할 수 있습니다.
+
+### Lexical Scope
+
+JavaScript는 코드를 작성한 위치를 기준으로 식별자의 접근 범위를 결정하는 lexical scope를 사용합니다. 함수를 어디에서 호출했는지가 아니라 어디에서 정의했는지가 변수 탐색에 중요합니다.
+
+```js
+const value = 'global';
+
+function printValue() {
+  console.log(value);
+}
+
+function execute() {
+  const value = 'local';
+  printValue();
+}
+
+execute(); // global
+```
+
+`printValue`는 전역에서 정의됐으므로 `execute` 내부의 지역 변수에는 접근하지 않고 자신이 정의된 바깥 환경에서 `value`를 찾습니다.
+
+### 스코프의 종류
+
+#### 전역 스코프
+
+전역 스코프는 가장 바깥 범위입니다. 전역 변수는 여러 코드에서 접근할 수 있어 이름 충돌과 의도하지 않은 변경을 만들 수 있으므로 필요한 범위 안으로 제한하는 편이 좋습니다.
+
+브라우저의 일반 script에서 최상위 `var`는 전역 객체인 `window`의 프로퍼티가 될 수 있지만, 최상위 `let`과 `const`는 전역 lexical binding을 만들며 `window`의 프로퍼티가 되지 않습니다.
+
+```html
+<script>
+  var first = 1;
+  let second = 2;
+
+  console.log(window.first);  // 1
+  console.log(window.second); // undefined
+</script>
+```
+
+#### 모듈 스코프
+
+ES Module 최상위의 식별자는 전역 객체가 아니라 해당 모듈의 스코프에 속합니다. 다른 모듈에서 사용하려면 명시적으로 `export`와 `import`를 거칩니다.
+
+```js
+// user.js
+const user = 'Kim';
+
+export function getUser() {
+  return user;
+}
+```
+
+```js
+// app.js
+import { getUser } from './user.js';
+```
+
+모듈 최상위의 `var`도 `window`의 프로퍼티가 되지 않습니다.
+
+#### 함수 스코프
+
+함수 안에서 선언한 식별자는 기본적으로 함수 밖에서 접근할 수 없습니다.
+
+```js
+function calculate() {
+  var first = 1;
+  let second = 2;
+  const third = 3;
+}
+
+console.log(first); // ReferenceError
+```
+
+`var`는 블록 스코프를 따르지 않지만 자신이 선언된 함수의 스코프는 벗어나지 않습니다.
+
+#### 블록 스코프
+
+`let`과 `const`는 `{}` 블록을 기준으로 유효 범위를 만듭니다. `var`는 블록 스코프를 따르지 않습니다.
+
+```js
+if (true) {
+  var functionScoped = 'var';
+  let blockScoped = 'let';
+  const alsoBlockScoped = 'const';
+}
+
+console.log(functionScoped);  // var
+console.log(blockScoped);     // ReferenceError
+console.log(alsoBlockScoped); // ReferenceError
+```
+
+```js
+function test() {
+  if (true) {
+    var value = 1;
+  }
+
+  console.log(value); // 1
+}
+
+console.log(value); // ReferenceError
+```
+
+### Scope Chain
+
+현재 lexical environment에서 식별자를 찾지 못하면 바깥 lexical environment를 순서대로 탐색합니다.
+
+```js
+const value = 'global';
+
+function outer() {
+  const value = 'outer';
+
+  function inner() {
+    console.log(value);
+  }
+
+  inner();
+}
+
+outer(); // outer
+```
+
+탐색 방향은 다음과 같습니다.
+
+```text
+inner scope -> outer scope -> global scope
+```
+
+각 lexical environment가 자신을 감싼 바깥 환경의 참조를 가지므로 안쪽에서는 바깥쪽 식별자를 찾을 수 있습니다. 반대로 바깥 환경에서 안쪽 환경을 거슬러 탐색하지는 않습니다.
+
+### Variable Shadowing
+
+안쪽 스코프에서 바깥쪽과 같은 이름을 선언하면 가까운 식별자가 바깥 식별자를 가립니다.
+
+```js
+const name = 'global';
+
+function printName() {
+  const name = 'local';
+  console.log(name);
+}
+
+printName();       // local
+console.log(name); // global
+```
+
+스코프 체인은 가장 가까운 곳에서 이름을 찾으면 탐색을 멈춥니다. Shadowing 자체가 잘못은 아니지만 중첩된 코드에서 같은 이름을 과도하게 사용하면 읽기 어려울 수 있습니다.
+
+### Hoisting과 Temporal Dead Zone
+
+`var` 선언은 스코프가 만들어질 때 `undefined`로 초기화되므로 선언문 전에 읽을 수 있습니다.
+
+```js
+console.log(value); // undefined
+var value = 1;
+```
+
+`let`과 `const`도 스코프의 binding은 미리 만들어지지만 선언문이 평가되기 전까지 초기화되지 않습니다. 이 구간을 Temporal Dead Zone, TDZ라고 합니다.
+
+```js
+console.log(value); // ReferenceError
+const value = 1;
+```
+
+TDZ에서는 변수가 스코프에 없는 것이 아니라 binding은 존재하지만 초기화 전이므로 접근할 수 없습니다.
+
+Shadowing과 TDZ가 함께 일어나면 바깥 변수를 대신 찾지 않습니다.
+
+```js
+const value = 'global';
+
+{
+  console.log(value); // ReferenceError
+  const value = 'block';
+}
+```
+
+블록의 `value` binding이 블록 전체에서 전역 `value`를 가리지만 선언문 전까지 TDZ에 있기 때문에 에러가 발생합니다.
+
+### for문의 var와 let
+
+`var`로 선언한 반복 변수는 블록이 아니라 하나의 함수 또는 전역 binding을 사용합니다. 비동기 callback들이 같은 `i`를 closure로 참조하므로 callback 실행 시점에는 반복이 끝난 값인 `3`을 읽습니다.
+
+```js
+for (var i = 0; i < 3; i++) {
+  setTimeout(() => console.log(i));
+}
+
+// 3
+// 3
+// 3
+```
+
+`for (let i = ...)`는 순회마다 새로운 lexical binding을 만듭니다. 각 callback은 자신이 만들어진 순회의 서로 다른 `i`를 참조합니다.
+
+```js
+for (let i = 0; i < 3; i++) {
+  setTimeout(() => console.log(i));
+}
+
+// 0
+// 1
+// 2
+```
+
+이 차이는 비동기 작업이 블록별 call stack에서 실행되기 때문이 아니라 callback이 캡처한 binding이 같거나 다르기 때문에 생깁니다.
+
+`let`을 사용한다고 항상 반복마다 binding이 생기는 것은 아닙니다. 반복문 바깥에서 하나의 `let`을 선언하면 callback들이 같은 binding을 참조합니다.
+
+```js
+let i = 0;
+
+for (; i < 3; i++) {
+  setTimeout(() => console.log(i));
+}
+
+// 3
+// 3
+// 3
+```
+
+### 스코프와 클로저
+
+클로저는 함수가 자신이 정의된 lexical environment를 계속 참조할 수 있게 합니다. 함수 실행이 끝난 뒤에도 내부 함수가 바깥 변수를 참조하고 있다면 그 환경은 유지될 수 있습니다.
+
+면접에서는 다음처럼 정리할 수 있습니다.
+
+> JavaScript는 함수의 호출 위치가 아니라 정의 위치를 기준으로 스코프가 결정되는 lexical scope를 사용합니다. 식별자는 현재 스코프에서 시작해 바깥쪽 scope chain으로 탐색하며 가장 가까운 값을 사용합니다. `var`는 함수 스코프이고 `let`과 `const`는 블록 스코프이며, `for (let i = ...)`에서는 반복마다 새로운 binding이 만들어져 각 closure가 서로 다른 값을 기억합니다.
+
 ## 클로저
 
 클로저는 함수와 그 함수가 선언된 lexical environment의 조합입니다. 함수가 선언된 스코프 밖에서 실행되더라도 선언 당시의 외부 변수에 접근할 수 있습니다.
