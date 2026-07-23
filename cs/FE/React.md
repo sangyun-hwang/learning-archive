@@ -9,6 +9,154 @@ React는 UI를 상태의 결과로 선언적으로 표현하는 라이브러리�
 - 컴포넌트 단위로 UI를 분리해 재사용성과 유지보수성을 높일 수 있습니다.
 - 생태계와 커뮤니티가 크고, Next.js 같은 프레임워크와 함께 확장하기 좋습니다.
 
+### 생태계 관점에서 React를 사용하는 이유
+
+React 생태계의 강점은 단순히 패키지의 수가 많다는 것이 아닙니다. 웹 서비스를 만들며 반복해서 마주치는 문제에 대해 여러 도구와 프레임워크, 학습 자료, 운영 경험이 축적되어 있다는 점이 중요합니다.
+
+React 자체는 UI에 집중하는 라이브러리입니다. Routing, 데이터 로딩, SSR, 배포 구조를 모두 정하지 않기 때문에 프로젝트 요구사항에 맞게 도구를 선택할 수 있습니다.
+
+이 유연성은 확장성과 개발팀의 제어 범위를 넓히지만, 어떤 도구를 선택하고 어떻게 통합할지 개발팀이 책임져야 한다는 단점도 있습니다.
+
+#### React 기반 프레임워크
+
+현재 React 공식 문서는 새로운 앱이나 웹사이트를 만들 때 React 기반 프레임워크로 시작하는 것을 권장합니다. 프레임워크는 routing, 데이터 fetching, 렌더링 전략, 빌드와 배포처럼 production 애플리케이션에 필요한 문제를 통합해 제공합니다.
+
+- Next.js: App Router, SSR, SSG, React Server Components와 full-stack 기능
+- React Router framework: 표준 Web API 중심의 routing과 full-stack 구성
+- Expo: React Native를 기반으로 Android, iOS, Web 앱 구성
+
+React만 사용해 처음부터 구성할 수도 있지만, 요구사항이 늘어나면 routing, SSR, SSG, 데이터 로딩과 같은 문제를 직접 선택하고 연결해야 합니다. 이는 사실상 프로젝트에 맞는 작은 프레임워크를 팀이 직접 만드는 것과 비슷해질 수 있습니다.
+
+Create React App은 현재 deprecated 상태이며, 단순한 client-side 앱을 직접 구성할 때는 Vite, Parcel, Rsbuild 같은 build tool을 사용할 수 있습니다. 다만 build tool은 routing이나 데이터 loading 같은 애플리케이션 구조까지 제공하는 프레임워크와 역할이 다릅니다.
+
+#### 문제별 라이브러리
+
+React 생태계에는 서비스 개발에서 반복되는 문제를 다루는 여러 선택지가 있습니다.
+
+| 영역 | 예시 |
+| --- | --- |
+| Routing | React Router, Next.js Router |
+| Server State | TanStack Query, SWR |
+| Client State | Redux Toolkit, Zustand |
+| Form | React Hook Form, Formik |
+| Validation | Zod |
+| UI와 Design System | MUI, Chakra UI, Ant Design, shadcn/ui |
+| 컴포넌트 문서화 | Storybook |
+| Testing | Testing Library, Cypress, Playwright |
+| Animation | Motion |
+| Native App | React Native, Expo |
+
+요구사항이 바뀌었을 때 React 자체를 교체하기보다 특정 문제를 담당하는 도구를 선택하거나 변경할 수 있습니다.
+
+하지만 유명한 라이브러리가 존재하는 것과 현재 프로젝트에 적합한 것은 다릅니다. 다음 항목을 함께 검토해야 합니다.
+
+- 최근 유지보수와 release 상태
+- React와 framework 버전 호환성
+- SSR과 React Server Components 지원 여부
+- bundle 크기와 tree shaking
+- TypeScript 지원
+- 접근성
+- 테스트 가능성과 문서 품질
+- 보안 이력과 transitive dependency
+- 필요한 기능에 비해 지나치게 크지 않은지
+
+다운로드 수는 참고 자료일 뿐 품질과 장기 유지보수를 보장하지 않습니다.
+
+#### 축적된 문제 해결 경험
+
+생태계가 크면 비슷한 문제를 먼저 경험하고 해결한 사례도 많아집니다.
+
+- 공식 문서와 예제
+- 오픈소스 구현
+- 오류 해결 사례와 토론
+- 설계 패턴과 안티패턴
+- 강의, 발표와 기술 문서
+- 개발 도구와 debugging 지원
+
+문제가 발생했을 때 원인을 찾고 여러 해결 방법을 검토할 자료가 많으면 개발 속도뿐 아니라 장애 대응과 장기 운영의 위험도 낮출 수 있습니다.
+
+다만 검색 결과가 많다고 모두 현재 권장 방식은 아닙니다. 클래스 컴포넌트 중심 코드, Create React App, 오래된 상태 관리 방식처럼 작성 시기와 React 버전을 확인해야 하는 자료도 많습니다.
+
+#### 점진적 도입
+
+React는 기존 서비스를 모두 다시 작성하지 않고 일부 interactive UI부터 도입할 수 있습니다.
+
+```text
+기존 서버 렌더링 페이지
++ React 검색 UI
++ React 결제 위젯
++ React 관리 화면
+```
+
+작은 컴포넌트, 특정 페이지 영역, 특정 route 순서로 적용 범위를 늘릴 수 있습니다. Rails, Django 같은 기존 서버 애플리케이션에도 React를 일부 추가할 수 있어 레거시 서비스를 단계적으로 개선할 때 유용합니다.
+
+점진적 도입이 항상 쉽다는 뜻은 아닙니다. 기존 상태 관리, routing, CSS와 React 영역의 경계를 정하고 두 시스템의 build와 배포 방식을 함께 관리해야 합니다.
+
+#### React Native로의 확장
+
+React Native에서는 React의 component, props, state, Hook 같은 UI 개발 모델을 Android와 iOS 애플리케이션에도 적용할 수 있습니다.
+
+```tsx
+function Profile() {
+  return (
+    <View>
+      <Text>사용자 정보</Text>
+    </View>
+  );
+}
+```
+
+웹의 DOM 요소 대신 `View`, `Text` 같은 native component를 사용하고 플랫폼 API와 native 개발 지식도 필요합니다. 따라서 웹 UI 코드를 모바일에서 그대로 실행하는 `Write once, run everywhere`가 아니라 React의 사고방식과 경험을 활용하는 `Learn once, write anywhere`에 가깝습니다.
+
+프로젝트에 따라 다음 자산을 공유할 수 있습니다.
+
+- React의 UI 설계 방식
+- 상태 관리와 비즈니스 로직
+- Custom Hook
+- TypeScript 타입
+- API client와 validation schema
+- React 경험이 있는 개발 인력
+
+실제 UI component의 공유 범위는 디자인과 플랫폼 요구사항에 따라 달라집니다.
+
+#### 조직과 유지보수 관점
+
+기업은 기술 자체의 기능뿐 아니라 채용, 교육, 운영과 장기 유지보수 비용도 고려합니다.
+
+- React 경험이 있는 인력과 학습 자료를 찾기 상대적으로 쉽습니다.
+- 새로운 팀원이 기존 도구와 패턴을 접해봤을 가능성이 높습니다.
+- 디자인 시스템과 사내 공통 package를 구축하기 좋습니다.
+- 외부 library와 서비스에서 React integration을 제공하는 경우가 많습니다.
+- 특정 문제에 대한 여러 구현체와 운영 경험을 비교할 수 있습니다.
+
+이런 조건은 특정 라이브러리나 한 명의 개발자에게만 의존하는 위험을 줄이는 데 도움이 됩니다. 다만 팀과 지역, 제품의 성격에 따라 실제 인력 시장과 적합성은 달라질 수 있습니다.
+
+#### 큰 생태계의 비용
+
+선택지가 많다는 점은 장점인 동시에 복잡성의 원인이 됩니다.
+
+- 같은 문제를 해결하는 도구가 많아 선택 기준이 필요합니다.
+- 프로젝트마다 구조와 사용하는 라이브러리가 달라질 수 있습니다.
+- Package 사이의 dependency와 version compatibility를 관리해야 합니다.
+- 오래된 자료와 현재 권장 방식이 함께 검색됩니다.
+- 의존성이 늘면 bundle, update와 공급망 공격의 표면도 커집니다.
+- 유지보수가 중단되거나 framework 변화와 맞지 않는 package가 생길 수 있습니다.
+- Next.js 같은 framework에 깊게 의존하면 해당 framework의 변경에도 영향을 받습니다.
+
+생태계를 잘 활용한다는 것은 package를 많이 설치하는 것이 아닙니다. 직접 구현할 비용과 외부 의존성을 유지할 비용을 비교하고, 필요한 문제에 대해 검증된 도구를 최소한으로 선택해야 합니다.
+
+#### 면접 답변
+
+> React를 사용하는 이유 중 하나는 성숙한 생태계입니다. React 자체는 UI에 집중하지만 Next.js, React Router 같은 프레임워크와 routing, server state, form, testing, UI 관련 라이브러리가 폭넓게 구축되어 있어 서비스 요구사항에 맞는 도구를 선택할 수 있습니다. 커뮤니티에 문제 해결 경험과 학습 자료가 축적되어 있고 React Native를 통해 같은 개발 모델을 모바일로 확장할 수도 있습니다. 다만 선택지가 많은 만큼 유지보수 상태와 호환성을 확인하고 필요한 의존성만 선택해야 합니다.
+
+#### 참고
+
+- [React: Creating a React App](https://react.dev/learn/creating-a-react-app)
+- [React: Build a React App from Scratch](https://react.dev/learn/build-a-react-app-from-scratch)
+- [React: Add React to an Existing Project](https://react.dev/learn/add-react-to-an-existing-project)
+- [React Community](https://react.dev/community)
+- [React Native](https://reactnative.dev/)
+
 ## JSX
 
 JSX는 JavaScript 확장 문법으로, UI를 HTML과 비슷한 형태로 작성하게 해줍니다. JSX는 브라우저가 직접 실행하는 문법이 아니라 빌드 과정에서 `React.createElement` 호출 또는 자동 JSX 런타임 코드로 변환됩니다.
