@@ -53,6 +53,8 @@
 - [File System Access API](FE/FileSystemAccess.md)
 - [Next.js](FE/Next.js/next.js.md)
 - [App Router](FE/Next.js/app-router.md)
+  - Parallel Routes와 named slots
+  - Intercepting Routes와 URL 기반 modal
 - [SEO](SEO/SEO.md)
 - [State Management](FE/StateManagement.md)
 - [Monorepo](FE/Monorepo.md)
