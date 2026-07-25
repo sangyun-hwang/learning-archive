@@ -52,6 +52,7 @@
 - [AbortController](FE/AbortController.md)
 - [File System Access API](FE/FileSystemAccess.md)
 - [Next.js](FE/Next.js/next.js.md)
+- [Next.js 14.2 이후 주요 변경사항](FE/Next.js/version-updates.md)
 - [App Router](FE/Next.js/app-router.md)
   - Parallel Routes와 named slots
   - Intercepting Routes와 URL 기반 modal
