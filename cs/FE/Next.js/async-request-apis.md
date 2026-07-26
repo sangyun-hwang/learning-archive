@@ -93,6 +93,8 @@ export default async function ProductPage({
 
 Client Component는 component function을 `async`로 선언할 수 없으므로 필요한 경우 React의 `use()`로 Promise를 읽습니다.
 
+> React `use()`의 동작은 [React use API](../ReactUse.md)에서 자세히 정리합니다.
+
 ```tsx
 'use client';
 
