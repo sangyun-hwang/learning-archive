@@ -22,6 +22,8 @@
 
 ### Async Request APIs
 
+> 상세 정리: [Async Request APIs](async-request-apis.md)
+
 요청 시점에 결정되는 다음 API와 props가 비동기로 변경되었습니다.
 
 - `cookies()`
