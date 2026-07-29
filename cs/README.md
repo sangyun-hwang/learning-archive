@@ -60,6 +60,8 @@
   - Intercepting Routes와 URL 기반 modal
 - [SEO](SEO/SEO.md)
 - [State Management](FE/StateManagement.md)
+  - Client State와 Server State
+  - Zustand와 TanStack Query
 - [Monorepo](FE/Monorepo.md)
 
 ## Testing
