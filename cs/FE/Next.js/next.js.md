@@ -1,5 +1,6 @@
 # next.js
 
+- [CSR, SSR, SSG](#csr-ssr-ssg)
 - [React Server Component](#react-server-component)
 - [Streaming](#streaming)
 - [next/link](#nextlink)
@@ -8,6 +9,130 @@
 - [Data fetching](#data-fetching)
 
 <br>
+
+## CSR, SSR, SSG
+
+세 rendering 방식은 HTML을 언제, 어디서 생성하는지를 기준으로 구분합니다.
+
+### CSR
+
+Client-Side Rendering은 browser가 JavaScript를 실행해 HTML을 생성합니다.
+
+```text
+Browser가 HTML shell과 JavaScript 수신
+-> JavaScript 다운로드 및 실행
+-> API data 요청
+-> 화면 rendering
+```
+
+초기 HTML에는 metadata, script와 application의 root element가 주로 포함됩니다.
+
+```html
+<div id="root"></div>
+<script src="/app.js"></script>
+```
+
+초기 loading 이후 화면 전환과 interaction에 유리하지만, JavaScript와 data가 준비되기 전에는 실제 content가 부족할 수 있습니다. 관리자 dashboard나 사내 도구처럼 SEO보다 interaction이 중요한 화면에 적합합니다.
+
+### SSR
+
+Server-Side Rendering은 사용자 request마다 server가 HTML을 생성합니다.
+
+```text
+사용자 request
+-> Server가 data 조회
+-> Server가 HTML 생성
+-> Browser에 content가 포함된 HTML 전달
+-> JavaScript hydration
+```
+
+초기 HTML에 content가 포함되어 SEO에 유리하고 cookie처럼 request 시점에만 알 수 있는 정보와 사용자별 data를 반영할 수 있습니다. 대신 request마다 data 조회와 server rendering 비용이 발생합니다.
+
+### SSG
+
+Static Site Generation은 build 시점에 HTML을 미리 생성합니다.
+
+```text
+Build
+-> Data 조회
+-> HTML 미리 생성
+-> CDN에 배포
+
+사용자 request
+-> 이미 생성된 HTML 전달
+-> JavaScript hydration
+```
+
+Request 시 HTML을 다시 생성하지 않아 response가 빠르고 server 부하가 적습니다. 회사 소개, 문서, 변경이 적은 blog post처럼 여러 사용자에게 같은 content를 제공하는 page에 적합합니다.
+
+Build 이후 server data가 바뀌어도 기존 HTML에는 바로 반영되지 않으므로 새로운 content를 반영하려면 다시 생성하는 과정이 필요합니다.
+
+### 비교
+
+| 구분 | CSR | SSR | SSG |
+| --- | --- | --- | --- |
+| HTML 생성 위치 | Browser | Server | Server |
+| HTML 생성 시점 | JavaScript 실행 시점 | Request 시점 | Build 시점 |
+| 초기 HTML | Content가 적은 shell | Content 포함 | Content 포함 |
+| Data 최신성 | Client 요청으로 반영 | Request마다 반영 가능 | 다시 생성하기 전까지 고정 |
+| Server rendering 비용 | 적음 | Request마다 발생 | Build 때 발생 |
+| SEO | 상대적으로 불리 | 유리 | 유리 |
+| 대표 사례 | 관리자 dashboard | 사용자별 page | 소개, 문서, blog |
+
+### SSR과 SSG의 공통점
+
+SSR과 SSG는 browser에 content가 포함된 HTML을 먼저 전달하는 pre-rendering 방식입니다.
+
+```text
+SSR
+-> Request 시 pre-rendering
+
+SSG
+-> Build 시 pre-rendering
+```
+
+검색 crawler가 JavaScript 실행에 의존하지 않고 초기 HTML에서 content를 확인할 수 있어 CSR보다 SEO에 유리할 수 있습니다. CSR도 검색이 불가능한 것은 아니지만 JavaScript 실행과 API 요청이 추가로 필요합니다.
+
+### Hydration
+
+SSR과 SSG로 생성한 React page도 JavaScript를 내려받고 hydration을 거치면 interaction할 수 있습니다.
+
+```text
+Server가 생성한 HTML
+-> Content와 element 표시
+
+JavaScript hydration 완료
+-> React event handler 연결
+-> Application interaction 활성화
+```
+
+HTML 자체 기능인 link 이동이나 form 제출은 JavaScript 없이도 동작할 수 있지만 React의 `onClick` 같은 event handler는 hydration 이후에 동작합니다.
+
+### Rendering 방식 선택
+
+한 application이 하나의 방식만 선택할 필요는 없습니다.
+
+```text
+회사 소개
+-> SSG
+
+사용자 주문 내역
+-> SSR
+
+관리자 dashboard
+-> CSR
+```
+
+실제 application에서는 page 요구사항에 따라 여러 방식을 조합합니다. 현대 Next.js는 route 또는 component 수준에서 static, cached, dynamic content를 함께 구성할 수 있습니다.
+
+### 면접 답변
+
+> CSR은 browser가 JavaScript를 실행해 HTML을 만드는 방식이고, SSR은 request마다 server가 HTML을 생성하는 방식이며, SSG는 build 시점에 HTML을 미리 생성하는 방식입니다. CSR은 interaction이 많은 application에 적합하지만 초기 content와 SEO에 상대적으로 불리할 수 있습니다. SSR은 최신 data와 사용자별 화면에 유리하지만 request마다 server 비용이 발생합니다. SSG는 빠르고 server 부하가 적지만 build 이후 변경된 data가 바로 반영되지 않습니다. 따라서 page 요구사항에 따라 rendering 방식을 조합합니다.
+
+### 참고
+
+- [Next.js: Rendering Strategies](https://nextjs.org/learn/seo/rendering-strategies)
+- [Next.js: Static and Dynamic Rendering](https://nextjs.org/learn/dashboard-app/static-and-dynamic-rendering)
 
 ## React Server Component
 

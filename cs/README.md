@@ -26,7 +26,6 @@
   - React에서 자주 사용하는 JavaScript 문법
   - 클린코드
   - 런타임 구조
-  - CSR, SSR, SSG
   - 성능 측정
 - [TypeScript](FE/Typescript.md)
   - 기본 타입
@@ -53,6 +52,7 @@
 - [AbortController](FE/AbortController.md)
 - [File System Access API](FE/FileSystemAccess.md)
 - [Next.js](FE/Next.js/next.js.md)
+  - CSR, SSR, SSG
 - [Next.js 14.2 이후 주요 변경사항](FE/Next.js/version-updates.md)
   - [Async Request APIs](FE/Next.js/async-request-apis.md)
 - [App Router](FE/Next.js/app-router.md)
