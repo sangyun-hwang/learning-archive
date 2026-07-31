@@ -53,6 +53,7 @@
 - [File System Access API](FE/FileSystemAccess.md)
 - [Next.js](FE/Next.js/next.js.md)
   - CSR, SSR, SSG
+  - Hydration과 Hydration Mismatch
 - [Next.js 14.2 이후 주요 변경사항](FE/Next.js/version-updates.md)
   - [Async Request APIs](FE/Next.js/async-request-apis.md)
 - [App Router](FE/Next.js/app-router.md)

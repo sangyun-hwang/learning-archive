@@ -95,7 +95,21 @@ SSG
 
 ### Hydration
 
-SSR과 SSG로 생성한 React page도 JavaScript를 내려받고 hydration을 거치면 interaction할 수 있습니다.
+Hydration은 server에서 생성한 HTML을 browser에서 재사용하면서 React component tree, state와 event handler를 연결해 interactive한 application으로 만드는 과정입니다.
+
+Server HTML을 삭제하고 client에서 DOM을 전부 다시 만드는 것이 아니라 기존 DOM에 React를 연결합니다.
+
+```text
+1. Server가 React component를 HTML로 rendering
+2. Browser가 HTML을 받아 화면에 표시
+3. React JavaScript bundle 다운로드
+4. React가 기존 HTML과 component tree 연결
+5. State와 event handler 활성화
+```
+
+#### HTML 표시와 Interaction
+
+Server HTML을 받은 직후에는 content와 element가 보이지만 React interaction은 아직 준비되지 않을 수 있습니다.
 
 ```text
 Server가 생성한 HTML
@@ -106,7 +120,117 @@ JavaScript hydration 완료
 -> Application interaction 활성화
 ```
 
-HTML 자체 기능인 link 이동이나 form 제출은 JavaScript 없이도 동작할 수 있지만 React의 `onClick` 같은 event handler는 hydration 이후에 동작합니다.
+HTML 자체 기능인 link 이동, form 제출과 focus는 JavaScript 없이도 동작할 수 있습니다. React의 `onClick`처럼 application에서 작성한 event handler는 hydration 이후에 동작합니다.
+
+JavaScript bundle이 크거나 main thread 작업이 무거우면 화면은 보이지만 button 반응이 늦을 수 있습니다.
+
+#### CSR Rendering과 차이
+
+CSR은 비어 있는 root에 React가 DOM을 처음 생성합니다.
+
+```tsx
+createRoot(document.getElementById('root')).render(<App />);
+```
+
+SSR이나 SSG에서는 이미 server가 만든 HTML이 있으므로 React를 연결합니다.
+
+```tsx
+hydrateRoot(document.getElementById('root'), <App />);
+```
+
+```text
+CSR
+-> 기존 HTML이 없음
+-> React가 DOM 생성
+
+Hydration
+-> Server HTML이 이미 있음
+-> 기존 DOM을 재사용하며 React 연결
+```
+
+Next.js 같은 framework에서는 `hydrateRoot()` 호출을 내부에서 처리합니다.
+
+#### Next.js App Router
+
+Next.js의 최초 page load는 HTML, RSC Payload와 Client Component JavaScript를 사용합니다.
+
+```text
+HTML
+-> 빠른 non-interactive 초기 화면 표시
+
+RSC Payload
+-> Server와 Client Component tree 조정
+
+JavaScript
+-> Client Component hydration
+-> Interaction 활성화
+```
+
+모든 Component가 hydration되는 것은 아닙니다.
+
+```text
+Server Component
+-> Server에서 실행
+-> Client JavaScript가 전달되지 않음
+-> Hydration 대상이 아님
+
+Client Component
+-> 최초 HTML pre-rendering에 참여할 수 있음
+-> Browser에서 hydration
+-> State와 event 활성화
+```
+
+`'use client'`가 붙었다고 최초 화면에서 server rendering에 전혀 참여하지 않는다는 뜻은 아닙니다. 최초 page load에서는 Client Component도 HTML preview 생성에 참여할 수 있고, browser에서 hydration되어 interaction이 활성화됩니다.
+
+#### SSR과 SSG
+
+HTML 생성 시점은 다르지만 React interaction이 있다면 둘 다 hydration이 필요합니다.
+
+```text
+SSR
+-> Request 시 HTML 생성
+-> Browser에서 hydration
+
+SSG
+-> Build 시 HTML 생성
+-> Browser에서 hydration
+```
+
+#### Hydration Mismatch
+
+Server가 만든 HTML과 client의 최초 rendering 결과가 다르면 hydration mismatch가 발생합니다.
+
+대표적인 원인은 다음과 같습니다.
+
+- `Date.now()`나 `Math.random()`처럼 실행마다 달라지는 값
+- Rendering 중 `window`, `localStorage` 같은 browser API 사용
+- Server와 client가 서로 다른 data 사용
+- 잘못된 HTML tag 중첩
+- Browser extension이 HTML 변경
+
+`Date.now()`는 server rendering과 client hydration의 실행 시점이 다르므로 값이 달라질 수 있습니다. `localStorage`는 server에 존재하지 않고 client에만 저장된 값이므로 최초 UI에 바로 사용하면 server HTML과 다른 결과가 만들어질 수 있습니다.
+
+Browser에서만 필요한 값은 hydration 이후 Effect에서 읽을 수 있습니다.
+
+```tsx
+'use client';
+
+export function ClientValue() {
+  const [value, setValue] = useState<string | null>(null);
+
+  useEffect(() => {
+    setValue(localStorage.getItem('value'));
+  }, []);
+
+  return <p>{value}</p>;
+}
+```
+
+Server rendering 결과와 client의 최초 rendering 결과를 동일하게 유지하는 것이 핵심입니다.
+
+#### Hydration 면접 답변
+
+> Hydration은 server에서 rendering한 HTML을 browser에서 재사용하면서 React component tree와 state, event handler를 연결해 interactive한 application으로 만드는 과정입니다. Next.js App Router에서는 Client Component도 최초 HTML 생성에 참여할 수 있지만 browser에서 hydration되어야 interaction이 활성화됩니다. 반면 Server Component는 server에서만 실행되고 client JavaScript가 전달되지 않으므로 hydration되지 않습니다. Server HTML과 client 최초 rendering 결과가 다르면 hydration mismatch가 발생하므로 두 환경의 초기 결과를 동일하게 유지해야 합니다.
 
 ### Rendering 방식 선택
 
@@ -133,6 +257,9 @@ HTML 자체 기능인 link 이동이나 form 제출은 JavaScript 없이도 동�
 
 - [Next.js: Rendering Strategies](https://nextjs.org/learn/seo/rendering-strategies)
 - [Next.js: Static and Dynamic Rendering](https://nextjs.org/learn/dashboard-app/static-and-dynamic-rendering)
+- [React: hydrateRoot](https://react.dev/reference/react-dom/client/hydrateRoot)
+- [Next.js: Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)
+- [Next.js: Hydration Error](https://nextjs.org/docs/messages/react-hydration-error)
 
 ## React Server Component
 
