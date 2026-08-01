@@ -1,7 +1,7 @@
 # next.js
 
 - [CSR, SSR, SSG](#csr-ssr-ssg)
-- [React Server Component](#react-server-component)
+- [Server Component와 Client Component](#server-component와-client-component)
 - [Streaming](#streaming)
 - [next/link](#nextlink)
 - [next/router](#nextrouter)
@@ -261,47 +261,145 @@ Server rendering 결과와 client의 최초 rendering 결과를 동일하게 유
 - [Next.js: Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)
 - [Next.js: Hydration Error](https://nextjs.org/docs/messages/react-hydration-error)
 
-## React Server Component
+## Server Component와 Client Component
 
-React Server Component(줄여서 RSC)는 React18부터 도입된 개념으로, 말 그대로 서버에서 동작하는 컴포넌트를 가리킨다. 그와 반대 되는 개념인 클라이언트 컴포넌트는 React18 이전 버전에서 우리가 사용하던 모든 컴포넌트를 말한다. 가장 큰 차이점은 컴포넌트의 렌더링 장소가 서버에서 이루어지는가 클라이언트에서 이루어지는가에 차이를 가진다.
+Next.js App Router에서는 Component를 Server Component와 Client Component로 나누어 Server와 Browser가 맡을 일을 구분합니다. `page.tsx`와 `layout.tsx`를 포함한 Component는 기본적으로 Server Component입니다.
 
-next.js 공식문서에서는 다음과 같이 구분한다.
+| 구분 | Server Component | Client Component |
+| --- | --- | --- |
+| 선언 | App Router의 기본값 | 파일 상단에 `'use client'` 선언 |
+| 주 실행 환경 | Server | Browser |
+| Client JavaScript | Component 코드가 bundle에 포함되지 않음 | Component 코드가 bundle에 포함됨 |
+| Data 접근 | DB, filesystem, Server 전용 자원에 접근 가능 | API나 Server Function 등을 통해 접근 |
+| State와 Effect | `useState`, `useEffect` 사용 불가 | 사용 가능 |
+| Event handler | `onClick`, `onChange` 사용 불가 | 사용 가능 |
+| Browser API | `window`, `localStorage` 사용 불가 | 사용 가능 |
+| Hydration | 대상이 아님 | Browser에서 hydration됨 |
 
-![img](https://velog.velcdn.com/images/2ast/post/226b2cd3-4cb5-47bf-b52c-f0087b4acc3b/image.png)
+### Server Component
 
-다이어그램으로 표현하면 다음과 같다.
+Server Component는 Server에서 실행되고 그 결과가 Client에 전달됩니다.
 
-![서버컴포넌트와 클라이언트 컴포넌트](https://s3-ap-northeast-2.amazonaws.com/opentutorials-user-file/module/6341/13043.png)
+```tsx
+export default async function ProductPage() {
+  const product = await db.product.findUnique({
+    where: { id: 1 },
+  });
 
-### RSC의 동작 방식
+  return <h1>{product?.name}</h1>;
+}
+```
 
-사용자가 페이지에 접속 요청을 보내면 서버는 컴포넌트 트리를 실행하고, 이를 JSON 형태로 직렬화하여 클라이언트로 전달합니다. 이미 완성된 RSC는 직렬화된 결과를 그대로 클라이언트로 전송합니다. 반면, React Client Component (RCC)는 클라이언트에서 JavaScript를 통해 렌더링되므로 직렬화하지 않고 클라이언트로 넘어갑니다.
+다음과 같은 작업에 적합합니다.
 
-![img](https://velog.velcdn.com/images/2ast/post/465f8024-69c3-47ee-8b6f-1ee3d75b4fda/image.png)
+- DB나 내부 API에서 data 조회
+- API key 등 Server 전용 정보 사용
+- 정적인 content와 layout rendering
+- Client에 전달할 JavaScript 감소
 
-RCC가 위치할 자리는 비워지며, 해당 자리에 대한 정보는 `module reference`라는 새로운 타입으로 지정됩니다. 이 정보는 컴포넌트의 경로를 명시하며, 클라이언트는 이를 활용하여 RCC가 나중에 렌더링될 위치를 파악합니다.
+Server Component는 Browser에 살아 있는 Component가 아니므로 state, Effect와 event handler를 사용할 수 없습니다.
 
-![img](https://velog.velcdn.com/images/2ast/post/7ef55ef0-4bef-417d-9e5f-08342345346f/image.png)
+Server Component를 선언하기 위해 `'use server'`를 붙이지 않습니다. `'use server'`는 Client에서 호출할 수 있는 Server Function을 표시하는 directive입니다.
 
-클라이언트는 서버로부터 결과물과 JavaScript 번들을 받아 초기 화면을 구성하며, `module reference`가 등장하면 해당 컴포넌트의 JavaScript 번들을 동적으로 가져와 렌더링합니다. 이로써 빈 공간이 RCC로 채워지고 최종적으로 완성된 화면이 사용자에게 표시됩니다.
+### Client Component
 
-### Next.js의 SSR
+State, 사용자 interaction 또는 Browser API가 필요하다면 Client Component를 사용합니다.
 
-Next.js의 SSR은 기존의 클라이언트 사이드 렌더링 (CSR)과 서버 사이드 렌더링 (SSR)의 장점을 결합한 형태입니다. 초기 로딩 속도 문제를 갖고 있던 CSR의 단점을 극복하기 위해, Next.js는 초기 로딩 시에 HTML 파일을 서버 사이드 렌더링을 통해 신속하게 받아오고, 그 후에 병렬적으로 JavaScript 번들도 가져와서 클라이언트 측에서 이미 받아온 HTML과 병합하는 과정을 거칩니다. 이 과정은 보통 `hydration`이라고 불립니다. 이러한 방식으로 Next.js의 SSR은 빠른 로딩 속도를 갖는 SSR의 강점과 인터랙션에 더 적합한 CSR의 강점을 모두 활용할 수 있게 되었습니다.
+```tsx
+'use client';
 
-### RSC 장점
+import { useState } from 'react';
 
-- zero bundle size
+export function LikeButton() {
+  const [liked, setLiked] = useState(false);
 
-RSC는 이미 서버에서 실행된 후 직렬화된 JSON 형태로 전달됩니다. 즉, 서버에서 외부 라이브러리의 실행이나 참조 모듈의 실행이 완료된 상태이기 때문에 어떠한 번들도 필요하지 않습니다. 이러한 특성이 Next의 TTI(Time To Interactive) 개선에 크게 기여할 수 있습니다. Next.js의 일반적인 SSR 방식을 사용하더라도 초기 로딩 속도만 빠를 뿐, 상호작용을 위해서는 여전히 CSR과 동일한 크기의 JavaScript 번들을 다운로드해야 하므로 TTI는 여전히 CSR과 비교했을 때 큰 메리트가 없습니다. 하지만 RSC를 도입하게 되면 다운로드해야 하는 번들 사이즈가 줄어들어 TTI가 크게 개선될 수 있습니다.
+  return (
+    <button onClick={() => setLiked((value) => !value)}>
+      {liked ? '좋아요 취소' : '좋아요'}
+    </button>
+  );
+}
+```
 
-- Automatic Code Splitting
+다음과 같은 작업에 필요합니다.
 
-원래 코드 스플리팅을 위해서는 React.Lazy나 동적 import를 사용해야 했습니다. 그러나 RSC에서 RCC를 import하는 경우에는 자동으로 RCC가 dynamic import됩니다. 이 장점은 어떻게 보면 당연한 사실인데, RSC가 서버에서 렌더링될 때 RCC는 실행되지 않기 때문에 RCC를 즉시 import할 필요가 없습니다.
+- `useState`, `useEffect` 등 Client Hook 사용
+- `onClick`, `onChange` 등 사용자 event 처리
+- `window`, `document`, `localStorage` 사용
+- Browser에서 동작하는 library 사용
 
-- 컴포넌트 단위 refetch
+### Client Component도 pre-rendering될 수 있음
 
-SSR의 경우 완성된 HTML 파일을 전송하기 때문에 작은 변경 사항이 발생하더라도 전체 페이지를 다시 받아와야 했습니다. 그러나 앞서 설명한대로 RSC는 최종 결과물이 HTML이 아니라 직렬화된 JSON 형태의 데이터를 받아옵니다. 클라이언트는 이 JSON을 해석하여 가상 DOM을 형성하고 화면을 갱신합니다. 따라서 화면에 변경사항이 생겨 서버에서 새로운 정보를 받아와야 할 상황이 오더라도, 기존 화면의 상태와 컨텍스트를 유지한 채로 변경된 사항만 선택적으로 반영할 수 있습니다. 이는 기존 화면을 완전히 교체하는 것이 아니라 필요한 부분만 업데이트하는 형태로 이루어지게 됩니다.
+`'use client'`는 Server Rendering을 끄는 표시가 아닙니다. 최초 page load에서 Client Component도 Server가 초기 HTML을 만드는 데 참여할 수 있습니다.
+
+```text
+Server에서 초기 HTML 생성
+-> Browser에 HTML 표시
+-> Client Component JavaScript 전달
+-> Hydration으로 state와 event handler 활성화
+```
+
+초기 HTML을 Server에서 만들 수 있어도 Component 코드가 Client bundle에 포함되고 Browser에서 실행되므로 Client Component라고 부릅니다.
+
+### `'use client'` 경계
+
+`'use client'`는 해당 파일만 표시하는 것이 아니라 Client module graph의 경계를 만듭니다. 그 파일에서 import한 module도 Client bundle에 포함될 수 있습니다.
+
+```text
+Server Component
+└── 'use client' LikeButton
+    ├── Icon
+    └── client-utils
+```
+
+최상위 `page.tsx`에 `'use client'`를 붙이면 하위 import까지 Client 영역이 넓어질 수 있습니다. 따라서 상호작용이 시작되는 작은 경계에 선언하는 것이 좋습니다.
+
+### Server와 Client 조합
+
+상품 상세 정보는 Server Component에서 조회하고, 상호작용이 필요한 버튼만 Client Component로 분리할 수 있습니다.
+
+```tsx
+// Server Component
+export default async function ProductPage() {
+  const product = await getProduct();
+
+  return (
+    <main>
+      <h1>{product.name}</h1>
+      <p>{product.description}</p>
+      <AddToCartButton productId={product.id} />
+    </main>
+  );
+}
+```
+
+이렇게 구성하면 상품 조회는 Server에서 처리하고, Browser에는 장바구니 interaction에 필요한 JavaScript만 전달할 수 있습니다.
+
+### Props 전달
+
+Server Component에서 Client Component로 전달하는 props는 직렬화할 수 있어야 합니다. 문자열, 숫자와 일반적인 객체는 전달할 수 있지만 DB connection이나 일반 함수 같은 Server 객체는 그대로 전달할 수 없습니다.
+
+또한 직렬화할 수 있다는 이유만으로 조회한 객체 전체를 전달하는 것은 피합니다.
+
+```tsx
+<AddToCartButton productId={product.id} />
+```
+
+필요한 값만 전달하면 다음과 같은 장점이 있습니다.
+
+- Client에 전달되는 payload 감소
+- 원가, 내부 메모 등 불필요한 Server data 노출 방지
+- Client Component의 역할과 의존성 단순화
+
+### 면접 답변
+
+> Server Component는 Server에서 실행되며 Component 코드가 Client bundle에 포함되지 않아 DB 접근이나 data fetching에 적합합니다. Client Component는 `'use client'` 경계 아래에서 동작하며 state, Effect, event handler와 Browser API를 사용할 수 있습니다. Client Component도 최초 HTML 생성에는 참여할 수 있지만 Browser에서 interaction을 활성화하려면 hydration이 필요합니다. 따라서 기본적으로 Server Component를 사용하고 상호작용이 필요한 작은 영역만 Client Component로 분리합니다.
+
+### 참고
+
+- [Next.js: Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)
+- [React: Server Components](https://react.dev/reference/rsc/server-components)
+- [React: `'use client'`](https://react.dev/reference/rsc/use-client)
 
 ## Streaming
 
