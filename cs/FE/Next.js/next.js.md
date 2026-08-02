@@ -403,29 +403,145 @@ Server Component에서 Client Component로 전달하는 props는 직렬화할 �
 
 ## Streaming
 
-React 및 Next.js에서 스트리밍이 작동하는 방식을 배우기위해 사전에 SSR(서버 사이드 렌더링)과 그 한계에 대하여 이해하는 것이 좋습니다.
+Next.js Streaming은 Server에서 page 전체가 완성될 때까지 기다리지 않고 준비된 UI부터 여러 chunk로 나누어 Client에 전달하는 방식입니다.
 
-SSR을 통해 사용자가 페이지를 보기 전에 아래의 과정을 거칩니다.
+```text
+상품 정보: 2초
+리뷰: 4초
 
-![Chart showing Server Rendering without Streaming](https://nextjs.org/_next/image?url=%2Fdocs%2Flight%2Fserver-rendering-without-streaming-chart.png&w=1920&q=75&dpl=dpl_6NUrNrbyMhexcnM4rTkyd8NkejGW)
+Streaming 적용
+-> 2초에 상품 영역 전달
+-> 4초에 리뷰 영역 전달
+```
 
-1. 서버에서 페이지의 데이터를 가져옵니다.
-2. 서버는 페이지의 HTML을 렌더링합니다.
-3. HTML, CSS 및 JavaScript 파일을 클라이언트로 전송합니다.
-4. 클라이언트는 먼저 HTML과 CSS를 사용하여 페이지의 정적인 부분을 렌더링합니다.
-5. JavaScript 파일이 로드되면 클라이언트 측에서 페이지를 활성화하고 동적 요소를 화면에 표시합니다.
+Streaming이 느린 DB query 자체를 빠르게 만들지는 않습니다. 전체 작업 완료 시간보다 초기 화면과 사용자의 체감 대기 시간을 개선합니다.
 
-이러한 과정은 순차적으로 진행되며, Hydration이 완료되기 전까지 사용자는 페이지와 상호작용할 수 없습니다. 이로 인해 초기 렌더링은 빠르지만 TTI까지는 완전하지 않습니다.
+### Suspense와의 관계
 
-Next.js 버전 13부터 도입된 Streaming은 이러한 문제를 해결하기 위해 Server Component를 활용해 페이지의 HTML을 작은 청크로 나누어 클라이언트에 병렬로 전송합니다.
+`Suspense`는 어떤 UI를 먼저 보내고 준비되지 않은 영역에 어떤 fallback을 보여줄지 정하는 경계입니다.
 
-![How Server Rendering with Streaming Works](https://nextjs.org/_next/image?url=%2Fdocs%2Flight%2Fserver-rendering-with-streaming.png&w=3840&q=75&dpl=dpl_6NUrNrbyMhexcnM4rTkyd8NkejGW)
+```tsx
+import { Suspense } from 'react';
 
-이 방법을 통해 우선순위가 높거나 데이터에 의존하지 않는 컴포넌트(예: 레이아웃)가 먼저 전송되어 브라우저에서 더 빠른 Hydration이 가능해집니다. 그리고 데이터 패칭이 필요한 컴포넌트나 낮은 우선순위의 요소는 데이터를 가져온 후 클라이언트로 전송됩니다.
+export default async function ProductPage() {
+  const product = await getProduct();
 
-![Chart showing Server Rendering with Streaming](https://nextjs.org/_next/image?url=%2Fdocs%2Flight%2Fserver-rendering-with-streaming-chart.png&w=1920&q=75&dpl=dpl_6NUrNrbyMhexcnM4rTkyd8NkejGW)
+  return (
+    <main>
+      <ProductInfo product={product} />
 
-따라서 Streaming을 사용하면 페이지가 렌더링되는 중에도 이미 Hydration이 완료된 컴포넌트는 사용자와 상호작용할 수 있습니다. 이것은 사용자 경험을 크게 향상시키는 데 도움이 됩니다.
+      <Suspense fallback={<ReviewSkeleton />}>
+        <Reviews productId={product.id} />
+      </Suspense>
+    </main>
+  );
+}
+```
+
+```text
+ProductInfo 준비
+-> ProductInfo와 ReviewSkeleton 먼저 전달
+
+Reviews 준비
+-> Reviews HTML 추가 전달
+-> ReviewSkeleton을 실제 Reviews로 교체
+```
+
+Streaming은 준비된 HTML을 나누어 전송하는 방식이고 Suspense는 Streaming을 나눌 UI 경계와 fallback을 지정합니다.
+
+### `loading.tsx`와 Suspense
+
+```text
+loading.tsx
+-> Route segment 단위
+-> Next.js가 page를 Suspense 경계로 자동으로 감쌈
+
+Suspense
+-> Component 단위
+-> 개발자가 세밀한 경계와 fallback 지정
+```
+
+```tsx
+// app/dashboard/loading.tsx
+export default function Loading() {
+  return <DashboardSkeleton />;
+}
+```
+
+`loading.tsx`가 있는 route로 이동해도 공유 `layout.tsx`는 유지됩니다. 변경되는 page 영역에 fallback이 표시되고, page가 준비되면 실제 content로 교체됩니다.
+
+서로 독립적인 추천 상품과 리뷰를 별도 Suspense로 감싸면 먼저 준비된 영역부터 각각 표시할 수 있습니다. 하나의 경계로 함께 감싸면 경계 안의 UI가 모두 준비된 뒤 함께 표시됩니다.
+
+### Data 요청 위치
+
+느린 data를 Suspense 바깥의 상위 Component에서 먼저 기다리면 React가 경계에 도달하기 전에 rendering이 중단됩니다.
+
+```tsx
+async function Reviews() {
+  const reviews = await getReviews();
+
+  return <ReviewList reviews={reviews} />;
+}
+```
+
+느린 요청을 Suspense 내부의 `Reviews`에서 기다리도록 분리해야 바깥 UI와 fallback을 먼저 보낼 수 있습니다.
+
+### 병렬 요청과 차이
+
+Streaming이 순차적으로 작성한 요청을 자동으로 병렬 요청으로 바꾸지는 않습니다.
+
+```tsx
+// 순차 실행: 약 2초 + 4초
+const product = await getProduct();
+const reviews = await getReviews();
+
+// 병렬 실행: 약 4초
+const [product, reviews] = await Promise.all([
+  getProduct(),
+  getReviews(),
+]);
+```
+
+`Promise.all()`은 두 요청을 동시에 실행하지만 위 코드 다음의 UI는 두 요청이 모두 끝난 뒤 만들 수 있습니다. 먼저 끝난 영역부터 표시하려면 각 요청을 별도 Suspense 내부 Component에서 실행합니다.
+
+```text
+병렬 요청
+-> 독립적인 작업을 동시에 실행해 전체 data 준비 시간 단축
+
+Streaming
+-> 준비된 UI부터 전달해 초기 화면과 체감 대기 시간 개선
+```
+
+상품 조회가 2초, 리뷰 조회가 4초라면 두 요청을 독립된 경계 안에서 시작해 상품을 2초에 먼저 보여주고 리뷰를 4초에 추가할 수 있습니다.
+
+### Streaming과 Hydration
+
+```text
+Streaming
+-> Server HTML을 준비되는 순서대로 Client에 전달
+
+Hydration
+-> 전달된 HTML에 Client Component의 state와 event 연결
+```
+
+Server Component의 HTML도 Streaming될 수 있지만 Server Component 자체는 hydration되지 않습니다. Client Component가 포함된 영역은 HTML이 먼저 표시되고 JavaScript가 준비된 뒤 hydration되어 상호작용할 수 있습니다.
+
+### 주의점
+
+- 사용자에게 의미 있는 UI 단위로 Suspense 경계 설정
+- 실제 content와 크기가 비슷한 skeleton으로 layout 변화 감소
+- 너무 많은 경계로 화면이 조각조각 나타나는 경험 방지
+- Streaming과 별개로 순차적인 data 요청 waterfall 확인
+
+### 면접 답변
+
+> Next.js Streaming은 Server에서 page 전체가 완성될 때까지 기다리지 않고 준비된 UI부터 chunk 단위로 Client에 전달하는 방식입니다. `loading.tsx`는 route segment 단위의 Suspense 경계를 자동으로 만들고, 직접 사용하는 Suspense는 느린 Component 단위로 더 세밀한 fallback을 제공합니다. Streaming은 data 조회 자체를 빠르게 만들기보다 느린 영역이 전체 화면을 막지 않게 해 초기 화면과 체감 성능을 개선합니다.
+
+### 참고
+
+- [Next.js: Streaming](https://nextjs.org/learn/dashboard-app/streaming)
+- [React: Suspense](https://react.dev/reference/react/Suspense)
+- [React: Server Rendering APIs](https://react.dev/reference/react-dom/server)
 
 ## next/link
 
