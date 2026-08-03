@@ -335,13 +335,21 @@ export function LikeButton() {
 ```text
 Server에서 초기 HTML 생성
 -> Browser에 HTML 표시
--> Client Component JavaScript 전달
--> Hydration으로 state와 event handler 활성화
+-> Client Component JavaScript 다운로드
+-> 기존 HTML에 React state와 event handler 연결
 ```
 
 초기 HTML을 Server에서 만들 수 있어도 Component 코드가 Client bundle에 포함되고 Browser에서 실행되므로 Client Component라고 부릅니다.
 
 ### `'use client'` 경계
+
+`'use client'`는 파일의 가장 위에서 import보다 먼저 작성합니다. Component 함수 안이나 특정 함수 위에 붙이는 표시가 아닙니다.
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+```
 
 `'use client'`는 해당 파일만 표시하는 것이 아니라 Client module graph의 경계를 만듭니다. 그 파일에서 import한 module도 Client bundle에 포함될 수 있습니다.
 
@@ -351,6 +359,8 @@ Server Component
     ├── Icon
     └── client-utils
 ```
+
+`Icon`과 `client-utils`는 Client 경계 안에서 import되므로 각 파일에 `'use client'`를 반복해서 작성할 필요가 없습니다.
 
 최상위 `page.tsx`에 `'use client'`를 붙이면 하위 import까지 Client 영역이 넓어질 수 있습니다. 따라서 상호작용이 시작되는 작은 경계에 선언하는 것이 좋습니다.
 
@@ -375,9 +385,35 @@ export default async function ProductPage() {
 
 이렇게 구성하면 상품 조회는 Server에서 처리하고, Browser에는 장바구니 interaction에 필요한 JavaScript만 전달할 수 있습니다.
 
+### Server Component를 children으로 전달
+
+Client Component에서 Server Component를 직접 import해 실행하는 대신, Server Component에서 구성한 JSX를 `children`으로 전달할 수 있습니다.
+
+```tsx
+// Server Component
+export default function Page() {
+  return (
+    <ClientModal>
+      <ServerProductList />
+    </ClientModal>
+  );
+}
+```
+
+```tsx
+// ClientModal.tsx
+'use client';
+
+export function ClientModal({ children }: { children: React.ReactNode }) {
+  return <div>{children}</div>;
+}
+```
+
+`ClientModal`은 열고 닫는 interaction을 담당하고 `ServerProductList`는 Server에서 실행됩니다. 화면의 부모·자식 관계가 아니라 어떤 module이 누구를 import하는지가 Client 경계를 결정합니다.
+
 ### Props 전달
 
-Server Component에서 Client Component로 전달하는 props는 직렬화할 수 있어야 합니다. 문자열, 숫자와 일반적인 객체는 전달할 수 있지만 DB connection이나 일반 함수 같은 Server 객체는 그대로 전달할 수 없습니다.
+Server Component에서 Client Component로 전달하는 props는 React가 직렬화할 수 있어야 합니다. 문자열, 숫자와 일반적인 객체는 전달할 수 있지만 DB connection이나 일반 event handler 함수 같은 Server 객체는 그대로 전달할 수 없습니다. React가 지원하는 Server Function은 별도 규칙을 통해 전달할 수 있습니다.
 
 또한 직렬화할 수 있다는 이유만으로 조회한 객체 전체를 전달하는 것은 피합니다.
 
@@ -393,7 +429,7 @@ Server Component에서 Client Component로 전달하는 props는 직렬화할 �
 
 ### 면접 답변
 
-> Server Component는 Server에서 실행되며 Component 코드가 Client bundle에 포함되지 않아 DB 접근이나 data fetching에 적합합니다. Client Component는 `'use client'` 경계 아래에서 동작하며 state, Effect, event handler와 Browser API를 사용할 수 있습니다. Client Component도 최초 HTML 생성에는 참여할 수 있지만 Browser에서 interaction을 활성화하려면 hydration이 필요합니다. 따라서 기본적으로 Server Component를 사용하고 상호작용이 필요한 작은 영역만 Client Component로 분리합니다.
+> `'use client'`는 Next.js App Router에서 Server와 Client module graph의 경계를 만드는 directive입니다. State, Effect, event handler나 Browser API가 필요한 Component에 사용하며, 해당 파일이 import하는 module도 Client bundle에 포함될 수 있습니다. Client Component도 최초 HTML 생성에는 참여할 수 있지만 Browser에서 hydration되어야 상호작용이 활성화됩니다. 따라서 page 전체보다 상호작용이 시작되는 작은 Component에 경계를 두는 것이 좋습니다.
 
 ### 참고
 
