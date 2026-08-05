@@ -66,6 +66,7 @@
 - [State Management](FE/StateManagement.md)
   - Client State와 Server State
   - Zustand와 TanStack Query
+  - [TanStack Query Hydration API](FE/TanStackQueryHydration.md)
 - [Monorepo](FE/Monorepo.md)
 
 ## Testing

@@ -115,6 +115,8 @@ const mutation = useMutation({
 
 TanStack Query가 server에서 발생한 모든 변경을 자동으로 아는 것은 아닙니다. `queryKey`, `staleTime`, refetch 조건과 mutation 이후 invalidation 등을 통해 동기화 기준을 설정해야 합니다.
 
+Next.js에서 Server가 prefetch한 query cache를 Browser QueryClient로 전달하는 과정은 [TanStack Query Hydration API](TanStackQueryHydration.md)에 정리합니다.
+
 ## Zustand와 TanStack Query 비교
 
 | 구분 | Zustand | TanStack Query |
@@ -163,3 +165,4 @@ Redux Toolkit은 Redux 사용 시 반복되는 설정과 보일러플레이트�
 
 - [Zustand](https://zustand.docs.pmnd.rs/)
 - [TanStack Query](https://tanstack.com/query/latest/docs/framework/react/overview)
+- [TanStack Query Hydration API](TanStackQueryHydration.md)
