@@ -2,6 +2,7 @@
 
 - [CSR, SSR, SSG](#csr-ssr-ssg)
 - [Server Component와 Client Component](#server-component와-client-component)
+- [Server Component와 SSR](#server-component와-ssr)
 - [Streaming](#streaming)
 - [next/link](#nextlink)
 - [next/router](#nextrouter)
@@ -436,6 +437,135 @@ Server Component에서 Client Component로 전달하는 props는 React가 직렬
 - [Next.js: Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)
 - [React: Server Components](https://react.dev/reference/rsc/server-components)
 - [React: `'use client'`](https://react.dev/reference/rsc/use-client)
+
+## Server Component와 SSR
+
+Server Component와 SSR은 이름에 Server가 들어가지만 서로 다른 질문에 답하는 개념입니다.
+
+```text
+Server Component
+-> Component 코드를 어디에서 실행할 것인가?
+
+SSR
+-> HTML을 언제 어디에서 생성할 것인가?
+```
+
+Server Component는 Component 실행 환경과 Client bundle 구성에 관한 개념이고, SSR은 요청 시점에 Server에서 HTML을 생성하는 rendering 전략입니다.
+
+| 구분 | Server Component | SSR |
+| --- | --- | --- |
+| 기준 | Component 실행 환경 | HTML 생성 시점과 위치 |
+| 실행 시점 | Build 또는 Request | Request마다 |
+| 주요 결과 | RSC Payload | HTML |
+| Client JavaScript | Component 코드가 전달되지 않음 | Client Component 코드는 전달됨 |
+| Hydration | Server Component는 대상이 아님 | Client Component는 hydration 필요 |
+
+### 같은 개념이 아닌 이유
+
+Server Component는 Build 시점과 Request 시점 모두에서 실행될 수 있습니다.
+
+```text
+Server Component + Build 시 실행
+-> SSG 또는 prerendering
+
+Server Component + Request 시 실행
+-> SSR 또는 Dynamic Rendering
+```
+
+회사 소개를 Server Component로 Build 시 생성했다면 Server Component와 SSG의 조합입니다. 사용자별 주문 내역을 Server Component가 요청마다 조회한다면 Server Component와 SSR 또는 Dynamic Rendering의 조합입니다.
+
+반대로 Client Component도 최초 접속에서는 Server의 HTML 생성에 참여할 수 있습니다.
+
+```text
+Server
+-> Client Component의 초기 HTML preview 생성
+
+Browser
+-> HTML 표시
+-> Client Component JavaScript 다운로드
+-> Hydration으로 state와 event handler 연결
+```
+
+따라서 다음처럼 동일한 개념으로 보면 안 됩니다.
+
+```text
+Server Component = SSR  (X)
+Client Component = CSR  (X)
+```
+
+### RSC Payload와 HTML
+
+Server Component의 주요 결과는 HTML 자체가 아니라 RSC Payload입니다.
+
+```text
+RSC Payload
+-> Server Component의 rendering 결과
+-> Client Component가 들어갈 위치
+-> Client Component JavaScript module 참조
+-> Server에서 Client로 전달한 props
+```
+
+두 결과물의 역할은 다음과 같습니다.
+
+```text
+HTML
+-> Browser가 직접 해석
+-> DOM과 초기 화면 표시
+
+RSC Payload
+-> React와 Next.js가 해석
+-> Server와 Client Component tree 구성 및 갱신
+```
+
+HTML만으로는 어떤 영역이 Server Component인지, 어떤 Client JavaScript가 필요한지, navigation에서 tree의 어느 부분을 갱신할지 알 수 없습니다. RSC Payload가 이 연결 정보를 제공합니다.
+
+### App Router의 최초 접속
+
+```text
+1. Server Component 실행
+2. RSC Payload 생성
+3. RSC Payload와 Client Component로 초기 HTML 생성
+4. Browser가 HTML로 초기 화면 표시
+5. RSC Payload로 Server와 Client Component tree 조정
+6. Client Component만 hydration
+```
+
+```text
+Server Component
+-> Component JavaScript 전달 안 됨
+-> Hydration 안 함
+
+Client Component
+-> 초기 HTML 생성에 참여 가능
+-> Component JavaScript 전달
+-> Hydration함
+```
+
+### 이후 Client Navigation
+
+최초 접속에서는 Browser가 문서를 표시하기 위해 HTML을 사용합니다. `<Link>`를 이용한 이후 navigation에서는 전체 HTML 문서를 다시 받는 대신 RSC Payload를 받아 기존 tree에 반영할 수 있습니다.
+
+```text
+최초 접속
+-> HTML + RSC Payload + Client JavaScript
+
+이후 navigation
+-> RSC Payload 중심으로 전달
+-> 필요한 route 영역만 갱신
+-> 기존 Client state와 공유 layout 유지
+```
+
+RSC는 단순히 Server에서 HTML을 만드는 기능이 아니라 Server와 Client Component tree를 연결하고 부분적으로 갱신하기 위한 data format 역할도 합니다.
+
+### 면접 답변
+
+> Server Component와 SSR은 기준이 다른 개념입니다. Server Component는 Component를 Server에서만 실행하고 해당 JavaScript를 Client bundle에 포함하지 않는 구조이며 결과는 RSC Payload로 전달됩니다. SSR은 요청마다 Server에서 초기 HTML을 생성하는 rendering 전략입니다. Server Component는 요청 시 실행되어 SSR과 함께 사용될 수도 있고 Build 시 실행되어 SSG에 사용될 수도 있습니다. 반대로 Client Component도 최초 접속에서는 Server에서 HTML로 미리 rendering될 수 있지만 Browser에서 hydration이 필요합니다.
+
+### 참고
+
+- [Next.js: Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)
+- [Next.js: Linking and Navigating](https://nextjs.org/docs/app/getting-started/linking-and-navigating)
+- [React: Server Components](https://react.dev/reference/rsc/server-components)
 
 ## Streaming
 

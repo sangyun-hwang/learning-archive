@@ -56,6 +56,7 @@
   - Hydration과 Hydration Mismatch
   - Server Component와 Client Component
   - `'use client'` 경계와 Server Component 조합
+  - Server Component와 SSR 비교
   - Streaming, Suspense와 loading.tsx
 - [Next.js 14.2 이후 주요 변경사항](FE/Next.js/version-updates.md)
   - [Async Request APIs](FE/Next.js/async-request-apis.md)
