@@ -27,7 +27,7 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 | Testing | Learning | [Cypress 설치, 테스트 구조, 커맨드, Assertion, intercept](cs/FE/Cypress.md) |
 | State Management | Practice | [Client와 Server State, Zustand, TanStack Query, Redux, RTK](cs/FE/StateManagement.md), [Next.js에서 TanStack Query Hydration](cs/FE/TanStackQueryHydration.md) |
 | Monorepo | Practice | [Monorepo 구조, Workspace, Turborepo](cs/FE/Monorepo.md) |
-| HTML / Web | Study Notes | [HTML 시맨틱 태그](cs/FE/HTML.md), [브라우저 렌더링 과정](cs/FE/BrowserRendering.md), [File System Access API](cs/FE/FileSystemAccess.md), [SEO](cs/SEO/SEO.md) |
+| HTML / Web | Study Notes | [HTML 시맨틱 태그](cs/FE/HTML.md), [브라우저 렌더링 과정](cs/FE/BrowserRendering.md), [오디오 재생과 일시정지](cs/FE/BrowserAudio.md), [File System Access API](cs/FE/FileSystemAccess.md), [SEO](cs/SEO/SEO.md) |
 
 ## CS
 
@@ -35,7 +35,7 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 
 | Topic | Status | Notes |
 | --- | --- | --- |
-| Browser / Runtime | Study Notes | [JavaScript 런타임 구조](cs/FE/Javascript.md#런타임-구조), [브라우저 렌더링 과정](cs/FE/BrowserRendering.md), [이벤트 루프](cs/FE/EventLoop.md) |
+| Browser / Runtime | Study Notes | [JavaScript 런타임 구조](cs/FE/Javascript.md#런타임-구조), [브라우저 렌더링 과정](cs/FE/BrowserRendering.md), [오디오 재생과 일시정지](cs/FE/BrowserAudio.md), [이벤트 루프](cs/FE/EventLoop.md) |
 | Network | Study Notes | [라우터, DNS, 네트워크 기초](cs/네트워크/네트워크.md), [Gateway](cs/네트워크/Gateway.md), [Cache-Control](cs/네트워크/CacheControl.md), [Keep-Alive](cs/네트워크/KeepAlive.md) |
 | Security | Study Notes | [웹 보안과 암호화 기본 개념](cs/보안/보안.md), [CSRF](cs/보안/CSRF.md), [Software Supply Chain Attack](cs/보안/SoftwareSupplyChainAttack.md) |
 | Architecture | Learning | [DDD, EDA, RPC, gRPC](cs/패턴/Pattern.md), [MSA](cs/Backend/Microservices.md), [Monolith and Modular Monolith](cs/Backend/ModularMonolith.md) |
