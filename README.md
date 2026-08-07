@@ -23,7 +23,7 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 | JavaScript | Study Notes | [데이터 타입, 함수, 클래스, 스코프, 클로저, 런타임 구조](cs/FE/Javascript.md), [이벤트 루프](cs/FE/EventLoop.md), [AbortController](cs/FE/AbortController.md) |
 | TypeScript | Study Notes | [기본 타입, 제네릭, React를 위한 타입스크립트, TypeScript 7.0](cs/FE/Typescript.md) |
 | React | Study Notes | [생태계, JSX, Virtual DOM, Fiber, 렌더링, 메모이제이션, useEffect와 Effect 생명주기](cs/FE/React.md), [React 19 use API](cs/FE/ReactUse.md), [Atomic Design](cs/FE/AtomicDesign.md) |
-| Next.js / SSR | Practice | [CSR, SSR, SSG, Hydration, Server Component와 SSR, 'use client', Streaming 정리](cs/FE/Next.js/next.js.md), [14.2 이후 주요 변경사항](cs/FE/Next.js/version-updates.md), [Async Request APIs](cs/FE/Next.js/async-request-apis.md), [App Router, Parallel Routes, Intercepting Routes](cs/FE/Next.js/app-router.md), [SSR Practice](https://github.com/sangyun-hwang/react-ssr-practice-without-nextjs) |
+| Next.js / SSR | Practice | [CSR, SSR, SSG, Hydration, Server Component와 SSR, 'use client', Streaming 정리](cs/FE/Next.js/next.js.md), [14.2 이후 주요 변경사항](cs/FE/Next.js/version-updates.md), [Async Request APIs](cs/FE/Next.js/async-request-apis.md), [App Router, Parallel Routes, Intercepting Routes](cs/FE/Next.js/app-router.md), [Dashboard App 실습 기록](cs/FE/Next.js/dashboard-app/README.md), [SSR Practice](https://github.com/sangyun-hwang/react-ssr-practice-without-nextjs) |
 | Testing | Learning | [Cypress 설치, 테스트 구조, 커맨드, Assertion, intercept](cs/FE/Cypress.md) |
 | State Management | Practice | [Client와 Server State, Zustand, TanStack Query, Redux, RTK](cs/FE/StateManagement.md), [Next.js에서 TanStack Query Hydration](cs/FE/TanStackQueryHydration.md) |
 | Monorepo | Practice | [Monorepo 구조, Workspace, Turborepo](cs/FE/Monorepo.md) |
@@ -86,6 +86,7 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 | SimpleXClone | Next.js, React Query 기반 SNS 클론 실습 | [Repository](https://github.com/sangyun-hwang/SimpleXClone) |
 | React Chat App | WebSocket 기반 채팅 실습 | [Repository](https://github.com/sangyun-hwang/react_chat_app) |
 | React SSR Practice | Next.js 없이 SSR 흐름 이해 | [Repository](https://github.com/sangyun-hwang/react-ssr-practice-without-nextjs) |
+| Next.js Dashboard Practice | App Router 기반 dashboard와 full-stack 흐름 실습 | [Repository](https://github.com/sangyun-hwang/nextjs-dashboard-practice) |
 | Next WebView Practice | Next.js 기반 WebView 실험 | [Repository](https://github.com/sangyun-hwang/next-webview-practice) |
 | Monorepo Practice | Turborepo 구조와 패키지 분리 실습 | [Repository](https://github.com/sangyun-hwang/monorepo-practice) |
 

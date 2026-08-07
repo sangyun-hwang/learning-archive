@@ -64,6 +64,9 @@
 - [App Router](FE/Next.js/app-router.md)
   - Parallel Routes와 named slots
   - Intercepting Routes와 URL 기반 modal
+- [Next.js Dashboard App 실습](FE/Next.js/dashboard-app/README.md)
+  - Chapter 1: Getting Started
+  - Chapter 2: CSS Styling
 - [SEO](SEO/SEO.md)
 - [State Management](FE/StateManagement.md)
   - Client State와 Server State
