@@ -12,6 +12,7 @@ Next.js 공식 Dashboard App 과정을 따라가며 App Router 기반 웹 애플
 | 1 | [Getting Started](chapter-01-getting-started.md) | Completed |
 | 2 | [CSS Styling](chapter-02-css-styling.md) | Completed |
 | 3 | [Optimizing Fonts and Images](chapter-03-optimizing-fonts-images.md) | Completed |
+| 4 | [Creating Layouts and Pages](chapter-04-creating-layouts-pages.md) | Completed |
 
 ## 정리 원칙
 
