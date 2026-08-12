@@ -302,6 +302,35 @@ Server Component는 Browser에 살아 있는 Component가 아니므로 state, Ef
 
 Server Component를 선언하기 위해 `'use server'`를 붙이지 않습니다. `'use server'`는 Client에서 호출할 수 있는 Server Function을 표시하는 directive입니다.
 
+### Server Component 실행과 RSC Payload
+
+Server Component의 source code가 직렬화되어 Browser로 전달되는 것은 아닙니다. Server가 Component code를 실행하고 그 결과를 React가 해석할 수 있는 RSC Payload로 만듭니다. 최초 접근에서는 이 결과가 HTML을 생성하는 데도 사용됩니다.
+
+```text
+Server
+-> Server Component code 실행
+-> RSC Payload 생성
+-> 최초 화면을 위한 HTML 생성에도 결과 사용
+
+Browser
+-> HTML로 초기 화면 표시
+-> RSC Payload로 React tree 구성
+-> Client Component만 hydration
+```
+
+RSC Payload에는 Server Component의 rendering 결과, Client Component가 들어갈 위치와 module 참조, Client Component에 전달할 직렬화 가능한 props 등이 포함됩니다.
+
+사용자가 클릭할 때마다 Server Component가 자동으로 대신 event를 처리하는 것은 아닙니다. Browser interaction은 Client Component의 event handler가 담당하고 Server 작업이 필요할 때 Server Function이나 API를 명시적으로 호출합니다.
+
+```text
+사용자 click
+-> Client Component event handler
+-> 필요한 경우 Server Function 또는 API 호출
+-> Server 작업 결과로 UI 갱신
+```
+
+Server Component는 상호작용이 필요 없는 UI와 data 조회 code를 Client bundle에서 제외할 수 있습니다. 이에 따라 JavaScript download, parsing과 hydration 범위를 줄이고 DB, secret과 Server 전용 library를 Browser에 노출하지 않을 수 있습니다.
+
 ### Client Component
 
 State, 사용자 interaction 또는 Browser API가 필요하다면 Client Component를 사용합니다.
@@ -385,6 +414,8 @@ export default async function ProductPage() {
 ```
 
 이렇게 구성하면 상품 조회는 Server에서 처리하고, Browser에는 장바구니 interaction에 필요한 JavaScript만 전달할 수 있습니다.
+
+`AddToCartButton`은 상품 전체를 다시 조회할 필요가 없습니다. 전달받은 `productId`로 장바구니 변경 요청만 수행하고 상품 설명은 Server Component가 이미 rendering한 결과를 사용합니다.
 
 ### Server Component를 children으로 전달
 
