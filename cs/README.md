@@ -64,6 +64,7 @@
 - [Next.js 14.2 이후 주요 변경사항](FE/Next.js/version-updates.md)
   - [Async Request APIs](FE/Next.js/async-request-apis.md)
   - [Server Actions](FE/Next.js/server-actions.md)
+  - [Next Server와 배포 구조](FE/Next.js/next-server.md)
 - [App Router](FE/Next.js/app-router.md)
   - Parallel Routes와 named slots
   - Intercepting Routes와 URL 기반 modal
