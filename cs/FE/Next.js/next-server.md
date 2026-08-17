@@ -70,7 +70,7 @@ Browser -> Backend Server: Client API 요청
 
 ## BFF 구조
 
-Browser가 Backend를 직접 호출하지 않고 Next의 Route Handler 또는 Server Action을 거칠 수도 있다.
+Browser가 Backend를 직접 호출하지 않고 Next Server를 거칠 수도 있다. 명시적인 HTTP API가 필요하다면 Route Handler를 사용하고, Next UI의 form 제출이나 mutation을 처리한다면 Server Action을 사용할 수 있다.
 
 ```text
 Browser
@@ -81,6 +81,30 @@ Browser
 
 Next Server가 현재 UI에 필요한 형태로 응답을 조합하고 내부 Backend 주소를 감추는 **Backend for Frontend** 역할을 맡는다.
 
+### Route Handler의 주소 흐름
+
+Client Component가 `fetch('/api/products')`를 호출하고 Route Handler가 Spring API를 대신 호출한다면 각 구간의 주소는 다음과 같다.
+
+```text
+Browser
+-> https://shop.example.com/api/products
+-> Next Route Handler
+-> http://spring-service:8080/api/products
+-> Spring Backend
+```
+
+Browser는 공개된 Next Application 주소를 사용하고, Next Server는 Server 환경 변수에 저장된 Spring의 내부 주소를 사용할 수 있다.
+
+### 기능별 역할
+
+| 기능 | 주요 목적 |
+| --- | --- |
+| Server Component | Server에서 UI와 조회 데이터를 준비 |
+| Server Action | Form 제출 등 Next UI에서 발생한 mutation 처리 |
+| Route Handler | 명시적인 HTTP API 또는 BFF endpoint 제공 |
+
+Route Handler는 첫 Page를 생성하는 기능이 아니다. 첫 화면은 Server Component와 SSR 또는 정적 Rendering이 담당한다. Server Component에서 Spring 데이터를 조회할 때는 특별한 이유가 없다면 같은 Next Application의 Route Handler를 다시 호출하기보다 Spring 내부 API를 직접 호출하는 편이 불필요한 HTTP 단계를 줄인다.
+
 | 직접 호출 | Next BFF 경유 |
 | --- | --- |
 | Browser가 Backend API 호출 | Browser가 Next Server 호출 |
@@ -89,6 +113,8 @@ Next Server가 현재 UI에 필요한 형태로 응답을 조합하고 내부 Ba
 | Browser가 Backend 인증을 직접 처리 | Next가 Cookie와 인증 흐름을 중계할 수 있음 |
 
 BFF가 권한 검사를 자동으로 해결하는 것은 아니다. Next와 Backend 중 각 보안 경계에서 인증, 인가와 입력 검증이 필요하다.
+
+Mobile App과 Web이 같은 핵심 API를 공유하고 Spring이 실제 Backend라면 두 Client가 Spring API를 직접 사용하는 구조가 더 명확할 수 있다. Route Handler는 Web UI에 특화된 응답 조합이나 중계가 필요할 때 선택한다.
 
 ## Next Server의 실제 위치
 
@@ -227,4 +253,3 @@ Load Balancer
 - [Next.js: Self-Hosting](https://nextjs.org/docs/app/guides/self-hosting)
 - [Next.js: Deploying](https://nextjs.org/docs/app/getting-started/deploying)
 - [Next.js: Static Exports](https://nextjs.org/docs/app/guides/static-exports)
-
