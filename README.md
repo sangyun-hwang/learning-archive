@@ -24,7 +24,7 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 | TypeScript | Study Notes | [기본 타입, 제네릭, React를 위한 타입스크립트, TypeScript 7.0](cs/FE/Typescript.md) |
 | React | Study Notes | [생태계, JSX, Virtual DOM, Fiber, 렌더링, 메모이제이션, useEffect와 Effect 생명주기](cs/FE/React.md), [React 19 use API](cs/FE/ReactUse.md), [Atomic Design](cs/FE/AtomicDesign.md), [Headless UI, Radix와 shadcn/ui](cs/FE/HeadlessUI.md) |
 | Next.js / SSR | Practice | [CSR, SSR, SSG, Hydration, Server Component와 SSR, 'use client', Streaming 정리](cs/FE/Next.js/next.js.md), [14.2 이후 주요 변경사항](cs/FE/Next.js/version-updates.md), [Async Request APIs](cs/FE/Next.js/async-request-apis.md), [Server Actions](cs/FE/Next.js/server-actions.md), [Next Server와 배포 구조](cs/FE/Next.js/next-server.md), [App Router, Parallel Routes, Intercepting Routes](cs/FE/Next.js/app-router.md), [Dashboard App 실습 기록](cs/FE/Next.js/dashboard-app/README.md), [SSR Practice](https://github.com/sangyun-hwang/react-ssr-practice-without-nextjs) |
-| Testing | Learning | [Cypress 설치, 테스트 구조, 커맨드, Assertion, intercept](cs/FE/Cypress.md) |
+| Testing | Learning | [Cypress 설치, 테스트 구조, 커맨드, Assertion, intercept](cs/FE/Cypress.md), [Storybook의 Story, args, Controls와 Interaction Test](cs/FE/Storybook.md) |
 | State Management | Practice | [Client와 Server State, Zustand, TanStack Query, Redux, RTK](cs/FE/StateManagement.md), [Next.js에서 TanStack Query Hydration](cs/FE/TanStackQueryHydration.md) |
 | Monorepo | Practice | [Monorepo 구조, Workspace, Turborepo](cs/FE/Monorepo.md) |
 | HTML / Web | Study Notes | [HTML 시맨틱 태그](cs/FE/HTML.md), [브라우저 렌더링 과정](cs/FE/BrowserRendering.md), [오디오 재생과 일시정지](cs/FE/BrowserAudio.md), [File System Access API](cs/FE/FileSystemAccess.md), [SEO](cs/SEO/SEO.md) |

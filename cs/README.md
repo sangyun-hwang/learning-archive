@@ -83,6 +83,7 @@
 ## Testing
 
 - [Cypress](FE/Cypress.md)
+- [Storybook](FE/Storybook.md)
 
 ## Backend
 
