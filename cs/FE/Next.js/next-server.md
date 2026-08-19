@@ -237,16 +237,6 @@ Load Balancer
 
 > Next Server는 Server Component 실행, SSR HTML과 RSC Payload 생성, Server Action과 Route Handler 처리를 담당하는 Next.js Runtime입니다. 별도 Backend가 있다면 Server Component에서 Backend API를 호출하거나 Browser와 Backend 사이의 BFF로 사용할 수 있습니다. Vercel이 아닌 환경에서도 Node.js Process나 Docker Container로 실행할 수 있지만 HTTPS, 환경 변수, Monitoring, Scaling과 여러 Instance의 Cache 일관성 같은 운영 요소를 직접 구성해야 합니다.
 
-## 확인할 질문
-
-1. Browser가 상품 Page에 처음 접근할 때 Next Server와 Spring Backend 사이의 요청 흐름은 어떻게 될까?
-2. Server Component가 Backend의 내부 주소를 사용할 수 있는 이유는 무엇일까?
-3. Browser의 Backend 직접 호출과 Next BFF 경유 방식은 무엇이 다를까?
-4. EC2에서 `next start`를 실행했다면 Next Server는 어디에 존재할까?
-5. Vercel 없이 Docker로 배포할 때 직접 관리해야 할 것은 무엇일까?
-6. Static Export에서 Server Action과 SSR을 사용할 수 없는 이유는 무엇일까?
-7. Next Instance가 여러 개면 Cache 공유를 고려해야 하는 이유는 무엇일까?
-
 ## References
 
 - [Next.js: Backend for Frontend](https://nextjs.org/docs/app/guides/backend-for-frontend)

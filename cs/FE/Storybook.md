@@ -207,16 +207,6 @@ Mocking의 목적은 실제 Backend가 정확히 동작한다고 증명하는 �
 
 > Storybook은 UI Component와 Page를 Application의 Routing이나 Backend 상태에서 분리해 개발하고 문서화하는 도구입니다. Component의 Loading, Error, Empty 같은 상태를 각각 Story로 저장해 반복 가능하게 확인할 수 있고, args와 Controls로 props를 변경하며 Edge Case를 탐색할 수 있습니다. 또한 play 함수를 이용한 Interaction Test와 Accessibility, Visual Regression Test의 기반으로 활용할 수 있지만, 실제 Backend를 포함한 전체 사용자 흐름은 E2E 테스트로 보완해야 합니다.
 
-## 확인할 질문
-
-1. Storybook을 단순한 Component 전시 페이지보다 개발 도구라고 보는 이유는 무엇일까?
-2. Component와 Story의 차이를 Button 예시로 설명해봐.
-3. Controls에서 props를 바꿀 수 있어도 중요한 상태를 named Story로 남겨야 하는 이유는 무엇일까?
-4. args와 argTypes는 각각 어떤 역할을 할까?
-5. Decorator로 모든 Application Provider를 넣는 것이 항상 좋은 것은 아닌 이유는 무엇일까?
-6. `play` 함수는 Story Rendering 전과 후 중 언제 실행되며 무엇을 검증할까?
-7. Storybook Interaction Test와 E2E Test는 검증 범위가 어떻게 다를까?
-
 ## References
 
 - [Storybook: Get started](https://storybook.js.org/docs)
@@ -225,4 +215,3 @@ Mocking의 목적은 실제 Backend가 정확히 동작한다고 증명하는 �
 - [Storybook: Args](https://storybook.js.org/docs/writing-stories/args)
 - [Storybook: Play function](https://storybook.js.org/docs/writing-stories/play-function)
 - [Storybook: Testing](https://storybook.js.org/docs/writing-tests)
-
