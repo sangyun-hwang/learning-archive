@@ -36,7 +36,7 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 | Topic | Status | Notes |
 | --- | --- | --- |
 | Browser / Runtime | Study Notes | [JavaScript 런타임 구조](cs/FE/Javascript.md#런타임-구조), [브라우저 렌더링 과정](cs/FE/BrowserRendering.md), [오디오 재생과 일시정지](cs/FE/BrowserAudio.md), [이벤트 루프](cs/FE/EventLoop.md) |
-| Network | Study Notes | [라우터, DNS, 네트워크 기초](cs/네트워크/네트워크.md), [Gateway](cs/네트워크/Gateway.md), [Cache-Control](cs/네트워크/CacheControl.md), [Keep-Alive](cs/네트워크/KeepAlive.md) |
+| Network | Study Notes | [라우터, DNS, 네트워크 기초](cs/네트워크/네트워크.md), [Gateway](cs/네트워크/Gateway.md), [Forward Proxy와 Reverse Proxy](cs/네트워크/Proxy.md), [Cache-Control](cs/네트워크/CacheControl.md), [Keep-Alive](cs/네트워크/KeepAlive.md) |
 | Security | Study Notes | [웹 보안과 암호화 기본 개념](cs/보안/보안.md), [CSRF](cs/보안/CSRF.md), [Software Supply Chain Attack](cs/보안/SoftwareSupplyChainAttack.md) |
 | Architecture | Learning | [DDD, EDA, RPC, gRPC](cs/패턴/Pattern.md), [MSA](cs/Backend/Microservices.md), [Monolith and Modular Monolith](cs/Backend/ModularMonolith.md) |
 | Storage | Study Notes | [SSD 스케줄링과 내부 동작](cs/ComputerScience/SSD.md), [Fenwick Tree](cs/ComputerScience/FenwickTree.md) |

@@ -134,6 +134,7 @@
 
 - [네트워크 기초](네트워크/네트워크.md)
 - [Gateway](네트워크/Gateway.md)
+- [Forward Proxy와 Reverse Proxy](네트워크/Proxy.md)
 - [Cache-Control](네트워크/CacheControl.md)
 - [Keep-Alive](네트워크/KeepAlive.md)
 
