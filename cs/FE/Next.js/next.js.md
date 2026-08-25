@@ -302,6 +302,24 @@ Server Component는 Browser에 살아 있는 Component가 아니므로 state, Ef
 
 Server Component를 선언하기 위해 `'use server'`를 붙이지 않습니다. `'use server'`는 Client에서 호출할 수 있는 Server Function을 표시하는 directive입니다.
 
+### Build 시 Module 분리
+
+Next.js는 `'use client'`를 Server와 Client module graph를 나누는 경계로 사용합니다.
+
+```text
+Server Module Graph
+-> Server Component
+-> DB client와 Server 전용 library
+-> Browser bundle에 포함되지 않음
+
+Client Module Graph
+-> 'use client'가 선언된 Component
+-> 해당 Component가 import한 module
+-> Browser가 내려받아 실행
+```
+
+따라서 상호작용이 필요한 작은 Component에만 Client 경계를 두면 Browser가 내려받고 hydration할 JavaScript를 줄일 수 있습니다. 반대로 상위 `page.tsx`에 `'use client'`를 선언하면 그 파일이 import하는 module까지 Client graph에 포함될 수 있습니다.
+
 ### Server Component 실행과 RSC Payload
 
 Server Component의 source code가 직렬화되어 Browser로 전달되는 것은 아닙니다. Server가 Component code를 실행하고 그 결과를 React가 해석할 수 있는 RSC Payload로 만듭니다. 최초 접근에서는 이 결과가 HTML을 생성하는 데도 사용됩니다.
@@ -320,6 +338,20 @@ Browser
 
 RSC Payload에는 Server Component의 rendering 결과, Client Component가 들어갈 위치와 module 참조, Client Component에 전달할 직렬화 가능한 props 등이 포함됩니다.
 
+RSC Payload와 Client JavaScript의 역할은 다릅니다.
+
+```text
+RSC Payload
+-> React tree 구조와 갱신 정보
+-> Client Component의 위치, module 참조와 props
+
+Client JavaScript
+-> useState와 event handler의 실제 실행 code
+-> hydration 이후 Browser에서 실행
+```
+
+따라서 RSC Payload 자체가 `onClick` 함수를 HTML에 붙이는 것은 아닙니다. RSC Payload는 어떤 Client module이 필요한지 알려주고, 실제 event handler는 Browser가 내려받은 Client JavaScript가 hydration 과정에서 연결합니다.
+
 사용자가 클릭할 때마다 Server Component가 자동으로 대신 event를 처리하는 것은 아닙니다. Browser interaction은 Client Component의 event handler가 담당하고 Server 작업이 필요할 때 Server Function이나 API를 명시적으로 호출합니다.
 
 ```text
@@ -329,7 +361,9 @@ RSC Payload에는 Server Component의 rendering 결과, Client Component가 들�
 -> Server 작업 결과로 UI 갱신
 ```
 
-Server Component는 상호작용이 필요 없는 UI와 data 조회 code를 Client bundle에서 제외할 수 있습니다. 이에 따라 JavaScript download, parsing과 hydration 범위를 줄이고 DB, secret과 Server 전용 library를 Browser에 노출하지 않을 수 있습니다.
+Server Component는 상호작용이 필요 없는 UI와 data 조회 code를 Client bundle에서 제외할 수 있습니다. 이에 따라 JavaScript download, parsing과 hydration 범위를 줄이고 DB, secret과 Server 전용 library를 Browser bundle에서 제외할 수 있습니다.
+
+다만 Server에서 조회했다는 사실만으로 결과까지 비공개가 되는 것은 아닙니다. 내부 원가나 secret을 JSX, RSC Payload 또는 Client Component props에 포함하면 Network response를 통해 Browser에 전달됩니다. Client에는 화면과 상호작용에 필요한 최소한의 값만 전달해야 합니다.
 
 ### Client Component
 
@@ -549,6 +583,8 @@ RSC Payload
 ```
 
 HTML만으로는 어떤 영역이 Server Component인지, 어떤 Client JavaScript가 필요한지, navigation에서 tree의 어느 부분을 갱신할지 알 수 없습니다. RSC Payload가 이 연결 정보를 제공합니다.
+
+RSC Payload를 hydration용 script와 동일하게 보면 안 됩니다. 최초 접속에서는 HTML과 Client JavaScript를 연결하는 데 사용되지만, 이후 navigation에서도 React가 기존 tree를 유지하면서 변경된 route 영역만 교체하는 데 사용됩니다.
 
 ### App Router의 최초 접속
 
