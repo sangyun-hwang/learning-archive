@@ -14,6 +14,8 @@ Next.js 공식 Dashboard App 과정을 따라가며 App Router 기반 웹 애플
 | 3 | [Optimizing Fonts and Images](chapter-03-optimizing-fonts-images.md) | Completed |
 | 4 | [Creating Layouts and Pages](chapter-04-creating-layouts-pages.md) | Completed |
 | 5 | [Navigating Between Pages](chapter-05-navigating-between-pages.md) | Completed |
+| 6 | [Setting Up Your Database](chapter-06-setting-up-database.md) | Completed |
+| 7 | [Fetching Data](chapter-07-fetching-data.md) | Completed |
 
 ## 정리 원칙
 
