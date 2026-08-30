@@ -17,6 +17,7 @@ Next.js 공식 Dashboard App 과정을 따라가며 App Router 기반 웹 애플
 | 6 | [Setting Up Your Database](chapter-06-setting-up-database.md) | Completed |
 | 7 | [Fetching Data](chapter-07-fetching-data.md) | Completed |
 | 8 | [Static and Dynamic Rendering](chapter-08-static-dynamic-rendering.md) | Completed |
+| 9 | [Streaming](chapter-09-streaming.md) | Completed |
 
 ## 정리 원칙
 
