@@ -129,6 +129,7 @@
 
 ## Development Tools
 
+- [Git Worktree](Tools/GitWorktree.md)
 - [uvx](Tools/uvx.md)
 
 ## Network
