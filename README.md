@@ -20,7 +20,7 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 
 | Topic | Status | Notes |
 | --- | --- | --- |
-| JavaScript | Study Notes | [데이터 타입, 함수, 클래스, 스코프, 클로저, 런타임 구조](cs/FE/Javascript.md), [이벤트 루프](cs/FE/EventLoop.md), [AbortController](cs/FE/AbortController.md), [Ky HTTP Client](cs/FE/Ky.md) |
+| JavaScript | Study Notes | [데이터 타입, 함수, 클래스, 스코프, 클로저, 구조 분해 할당 선택 기준, 런타임 구조](cs/FE/Javascript.md), [이벤트 루프](cs/FE/EventLoop.md), [AbortController](cs/FE/AbortController.md), [Ky HTTP Client](cs/FE/Ky.md) |
 | TypeScript | Study Notes | [기본 타입, 제네릭, React를 위한 타입스크립트, TypeScript 7.0](cs/FE/Typescript.md) |
 | React | Study Notes | [생태계, JSX, Virtual DOM, Fiber, 렌더링, 메모이제이션, useEffect와 Effect 생명주기](cs/FE/React.md), [React 19 use API](cs/FE/ReactUse.md), [Atomic Design](cs/FE/AtomicDesign.md), [Feature-Sliced Design](cs/FE/FSD.md), [Headless UI, Radix와 shadcn/ui](cs/FE/HeadlessUI.md) |
 | Next.js / SSR | Practice | [CSR, SSR, SSG, Hydration, Server Component와 SSR, 'use client', Streaming 정리](cs/FE/Next.js/next.js.md), [14.2 이후 주요 변경사항](cs/FE/Next.js/version-updates.md), [Async Request APIs](cs/FE/Next.js/async-request-apis.md), [Server Actions](cs/FE/Next.js/server-actions.md), [Next Server와 배포 구조](cs/FE/Next.js/next-server.md), [App Router, Parallel Routes, Intercepting Routes](cs/FE/Next.js/app-router.md), [Dashboard App 실습 기록](cs/FE/Next.js/dashboard-app/README.md), [SSR Practice](https://github.com/sangyun-hwang/react-ssr-practice-without-nextjs) |

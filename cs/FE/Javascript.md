@@ -370,6 +370,134 @@ const [primary] = colors;
 
 기본값은 값이 `undefined`일 때만 적용됩니다.
 
+#### 객체 프로퍼티 접근과의 차이
+
+`user.name`은 표현식이 실행될 때 객체의 현재 프로퍼티를 읽는다. 구조 분해 할당은 실행 시점의 프로퍼티 값을 별도의 지역 변수에 할당한다.
+
+```js
+const user = { name: 'Kim' };
+const { name } = user;
+
+user.name = 'Lee';
+
+console.log(user.name); // Lee
+console.log(name); // Kim
+```
+
+`const { name } = user`는 다음 코드와 비슷하다.
+
+```js
+const name = user.name;
+```
+
+구조 분해한 변수가 원본 프로퍼티와 실시간으로 연결되는 것은 아니다. 이후 `user.name`이 바뀌어도 기존 `name`은 자동으로 갱신되지 않는다.
+
+#### 객체 참조
+
+구조 분해 할당은 객체를 깊게 복사하지 않는다. 프로퍼티 값이 객체라면 그 객체를 가리키는 참조가 할당된다.
+
+```js
+const user = {
+  profile: { name: 'Kim' },
+};
+
+const { profile } = user;
+profile.name = 'Lee';
+
+console.log(user.profile.name); // Lee
+```
+
+`profile`과 `user.profile`이 같은 객체를 가리키므로 내부 변경이 양쪽에서 보인다. 그러나 `user.profile`을 새 객체로 교체해도 기존 `profile` 변수는 구조 분해 당시의 객체를 계속 가리킨다.
+
+#### React Rendering에서의 동작
+
+React에서 구조 분해한 값이 바뀌어 보이는 것은 기존 지역 변수가 반응형으로 갱신되기 때문이 아니다. Props나 State가 변경되어 Component 함수가 다시 실행되면 새로운 Rendering에서 구조 분해 할당도 다시 실행된다.
+
+```tsx
+function UserName({ user }) {
+  const { name } = user;
+  return <p>{name}</p>;
+}
+```
+
+각 Rendering은 자신이 실행될 때의 지역 변수를 가진다. 이전 Rendering에서 생성한 비동기 Callback은 이전 값을 기억할 수 있으므로 stale closure는 별도로 주의해야 한다.
+
+#### 객체가 제공하는 문맥
+
+구조 분해는 코드를 짧게 만들지만 객체 이름이 제공하던 값의 출처를 제거할 수 있다.
+
+```js
+const { id, status, owner } = project;
+
+// 코드가 길어지면 값의 출처를 다시 확인해야 할 수 있다.
+if (status === 'archived') {
+  saveAuditLog(owner);
+}
+```
+
+객체를 통해 접근하면 프로퍼티가 어느 개념에 속하는지 바로 드러난다.
+
+```js
+if (project.status === 'archived') {
+  saveAuditLog(project.owner);
+}
+```
+
+여러 객체가 `id`, `name`, `status`처럼 같은 프로퍼티를 가진 경우에도 직접 접근하면 출처가 명확하다. 구조 분해가 필요하다면 이름을 바꿔 문맥을 보존할 수 있다.
+
+```js
+const { status: userStatus } = user;
+const { status: orderStatus } = order;
+```
+
+#### 메서드와 `this`
+
+JavaScript의 `this`는 일반적으로 함수가 호출되는 방식에 따라 결정된다. 객체 메서드를 구조 분해하면 호출 주체인 객체를 잃을 수 있다.
+
+```js
+const counter = {
+  count: 1,
+  getCount() {
+    return this.count;
+  },
+};
+
+counter.getCount(); // this는 counter
+
+const { getCount } = counter;
+getCount(); // counter라는 호출 주체가 사라짐
+```
+
+`this`에 의존하는 메서드는 `object.method()` 형태로 호출하거나 필요한 경우 명시적으로 `bind`해야 한다.
+
+#### 선택 기준
+
+구조 분해 할당은 다음 상황에서 유용하다.
+
+- 사용 범위가 짧고 원본 객체가 바로 보이는 경우
+- `map` Callback처럼 객체가 몇 줄 안에서만 사용되는 경우
+- 이름 변경으로 더 의미 있는 지역 변수를 만들 수 있는 경우
+- 필요한 일부 값만 간결하게 전달하거나 사용할 경우
+
+```jsx
+posts.map(({ id, title }) => (
+  <Post key={id} title={title} />
+));
+```
+
+직접 프로퍼티 접근은 다음 상황에서 문맥을 더 잘 보존한다.
+
+- 함수가 길어 값의 출처를 잊기 쉬운 경우
+- 여러 객체가 `id`, `name`, `status` 같은 프로퍼티를 함께 가지는 경우
+- 객체의 현재 프로퍼티 값을 접근 시점마다 읽어야 하는 경우
+- 구조 분해가 의미를 추가하지 않고 지역 변수만 늘리는 경우
+
+일반적인 Application Code에서는 두 방식의 미세한 성능 차이보다 가독성을 기준으로 선택한다. 구조 분해는 객체가 있다는 이유만으로 자동 적용하기보다 다음 질문을 기준으로 판단할 수 있다.
+
+> 구조 분해가 코드에 더 좋은 이름과 간결함을 제공하는가, 아니면 객체가 제공하던 문맥만 제거하는가?
+
+참고: [I stopped destructuring everything - Matt Smith](https://allthingssmitty.com/2026/07/13/i-stopped-destructuring-everything/)
+
 ### rest와 spread
 
 ```js
