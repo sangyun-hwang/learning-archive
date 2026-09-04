@@ -53,6 +53,7 @@
 - [HTML](FE/HTML.md)
 - [Browser Rendering](FE/BrowserRendering.md)
 - [브라우저 키보드 입력 처리](FE/KeyboardInput.md)
+- [이벤트 위임](FE/EventDelegation.md)
 - [브라우저 Gamepad와 Joystick 입력 처리](FE/GamepadInput.md)
 - [브라우저의 오디오 재생과 일시정지](FE/BrowserAudio.md)
 - [Event Loop](FE/EventLoop.md)
