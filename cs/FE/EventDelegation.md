@@ -41,7 +41,7 @@ menu.addEventListener('click', (event) => {
 
 버튼 안의 아이콘이나 `span`을 클릭하면 `target`은 해당 자식일 수 있다. `closest('button')`을 사용하면 Event가 시작된 위치에서 가장 가까운 처리 대상을 찾을 수 있다.
 
-찾은 요소가 위임 영역 밖에 있지 않은지 `contains()`로 확인하면 Handler가 담당하는 범위를 명확히 할 수 있다.
+`closest()`는 현재 요소부터 조상 방향으로 탐색한다. 찾은 버튼이 `menu` 안에 있는지 `menu.contains(button)`으로 확인하면 위임 영역 바깥의 요소를 잘못 처리하는 일을 막고 Handler의 책임 범위를 명확히 할 수 있다.
 
 ## 동적으로 추가된 요소
 
@@ -61,7 +61,7 @@ menu.addEventListener('click', (event) => {
 
 - `stopPropagation()`이 호출되면 Event가 위임 Handler까지 도달하지 않을 수 있다.
 - 모든 Event가 같은 방식으로 Bubbling되지는 않는다.
-- `focus`, `blur` 대신 Bubbling되는 `focusin`, `focusout`을 사용할 수 있다.
+- `focus`, `blur`는 일반적인 방식으로 Bubbling되지 않는다. 부모에서 자식의 포커스 변화를 위임하려면 Bubbling되는 `focusin`, `focusout`을 사용할 수 있다.
 - 모든 Handler를 `document`에 모으기보다 기능을 소유한 가까운 부모를 위임 지점으로 선택한다.
 - `target`의 Tag 이름만 가정하지 말고 `closest()`와 식별용 `data-*` 속성 등을 활용한다.
 
