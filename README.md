@@ -27,7 +27,7 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 | Testing | Learning | [Cypress 설치, 테스트 구조, 커맨드, Assertion, intercept](cs/FE/Cypress.md), [Storybook의 Story, args, Controls와 Interaction Test](cs/FE/Storybook.md) |
 | State Management | Practice | [Client와 Server State, Zustand, TanStack Query, Redux, RTK](cs/FE/StateManagement.md), [Next.js에서 TanStack Query Hydration](cs/FE/TanStackQueryHydration.md) |
 | Monorepo | Practice | [Monorepo 구조, Workspace, Turborepo](cs/FE/Monorepo.md) |
-| HTML / Web | Study Notes | [HTML 시맨틱 태그](cs/FE/HTML.md), [브라우저 렌더링 과정](cs/FE/BrowserRendering.md), [키보드 입력 처리](cs/FE/KeyboardInput.md), [이벤트 위임](cs/FE/EventDelegation.md), [Gamepad와 Joystick 입력 처리](cs/FE/GamepadInput.md), [오디오 재생과 일시정지](cs/FE/BrowserAudio.md), [File System Access API](cs/FE/FileSystemAccess.md), [Custom Protocol과 Native Application 실행](cs/FE/BrowserNativeAppLaunch.md), [SEO](cs/SEO/SEO.md) |
+| HTML / Web | Study Notes | [HTML 시맨틱 태그](cs/FE/HTML.md), [DOM](cs/FE/DOM.md), [브라우저 렌더링 과정](cs/FE/BrowserRendering.md), [키보드 입력 처리](cs/FE/KeyboardInput.md), [이벤트 위임](cs/FE/EventDelegation.md), [Gamepad와 Joystick 입력 처리](cs/FE/GamepadInput.md), [오디오 재생과 일시정지](cs/FE/BrowserAudio.md), [File System Access API](cs/FE/FileSystemAccess.md), [Custom Protocol과 Native Application 실행](cs/FE/BrowserNativeAppLaunch.md), [SEO](cs/SEO/SEO.md) |
 
 ## CS
 
