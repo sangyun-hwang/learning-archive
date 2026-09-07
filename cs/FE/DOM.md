@@ -57,7 +57,7 @@ element.firstElementChild;
 element.nextElementSibling;
 ```
 
-`children`은 Element만 다루고 `childNodes`는 Text와 Comment를 포함한 모든 Node를 다룬다는 차이가 있다.
+`children`은 Element만 다루고 `childNodes`는 Text와 Comment를 포함한 모든 Node를 다룬다는 차이가 있다. HTML의 줄바꿈과 공백도 하나의 Text Node로 포함될 수 있으므로 두 Collection의 항목 수가 다를 수 있다.
 
 ## 생성과 변경
 
@@ -101,6 +101,9 @@ DOM 변경
 ```
 
 모든 DOM 변경이 항상 전체 Page의 Layout과 Paint를 발생시키는 것은 아니다. 변경한 내용과 CSS 속성, Browser의 최적화 방식에 따라 필요한 Rendering 작업이 달라진다. 반복문에서 DOM을 계속 읽고 수정하면 불필요한 계산이 발생할 수 있으므로 변경을 모아 처리하는 편이 유리할 수 있다.
+
+- `background-color` 변경은 Layout 없이 Paint가 필요할 수 있다.
+- `width` 변경은 주변 요소의 배치에 영향을 주어 Layout과 Paint가 필요할 수 있다.
 
 ## DOM과 Virtual DOM
 
