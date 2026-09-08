@@ -120,6 +120,7 @@
 
 ## AI & Tool Use
 
+- [ADE (Agentic Development Environment)](AI/AgenticDevelopmentEnvironment.md)
 - [AX and AI Integration](AI/AgentExperience.md)
 - [Function Calling](AI/FunctionCalling.md)
 - [Hermes Agent](AI/HermesAgent.md)
