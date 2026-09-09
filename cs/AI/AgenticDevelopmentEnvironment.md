@@ -37,7 +37,7 @@ ADE는 이 Agent Loop가 실제 개발 환경에서 반복될 수 있도록 Cont
 
 ### Project Context
 
-Agent가 Repository 구조와 개발 규칙을 이해할 수 있도록 `AGENTS.md`, 문서, Code와 Git History 등의 Context를 제공한다. Model의 일반 지식만으로 작업하면 프로젝트의 규칙과 의도를 놓칠 수 있으므로 필요한 정보를 적절한 시점에 전달하는 것이 중요하다.
+Agent가 Repository 구조와 개발 규칙을 이해할 수 있도록 `AGENTS.md`, 문서, Code와 Git History 등의 Context를 제공한다. Model이 React나 Spring의 일반 지식을 알고 있어도 프로젝트만의 Architecture, Build와 Test 명령, Code Style, 수정 금지 영역과 완료 조건까지 자동으로 알 수는 없다. 필요한 정보를 적절한 시점에 전달해야 프로젝트의 의도와 규칙에 맞게 작업할 수 있다.
 
 ### Tool과 실행 환경
 
@@ -52,7 +52,7 @@ Agent A -> Worktree A -> feature/search
 Agent B -> Worktree B -> fix/payment
 ```
 
-격리된 환경은 충돌 가능성을 낮추지만 논리적인 Code 충돌까지 자동으로 해결하지는 않는다. 최종 통합과 검증은 여전히 필요하다.
+격리된 환경은 Agent들이 같은 작업 파일과 Staging Area를 덮어쓰는 문제를 줄이지만 논리적인 Code 충돌까지 자동으로 해결하지는 않는다. 예를 들어 Agent A가 Login API Contract를 변경하고 Agent B가 기존 Contract를 기준으로 UI를 만들었다면 각 Branch에서 성공해도 Merge한 결과는 깨질 수 있다. 최종 통합과 검증은 여전히 필요하다.
 
 ### Review와 검증
 
@@ -63,6 +63,8 @@ Agent가 작업을 완료했다고 말하는 것만으로 결과를 신뢰해서
 - Build와 Lint 상태
 - Tool 호출과 작업 기록
 - Commit과 Pull Request
+
+Test 통과도 중요한 근거지만 요구사항 충족을 보장하지는 않는다. Test가 모든 요구사항을 다루지 않거나 Agent가 불필요한 파일과 기존 Test까지 잘못 변경했을 수 있으므로 Diff와 변경 범위를 함께 검토한다.
 
 사람은 모든 Code를 처음부터 직접 작성하는 역할에서 목표, 제약과 완료 조건을 정의하고 결과를 Review하는 역할까지 맡게 된다.
 
