@@ -19,6 +19,7 @@ Next.js 공식 Dashboard App 과정을 따라가며 App Router 기반 웹 애플
 | 8 | [Static and Dynamic Rendering](chapter-08-static-dynamic-rendering.md) | Completed |
 | 9 | [Streaming](chapter-09-streaming.md) | Completed |
 | 10 | [Adding Search and Pagination](chapter-10-search-pagination.md) | Completed |
+| 11 | [Mutating Data](chapter-11-mutating-data.md) | Completed |
 
 ## 정리 원칙
 
