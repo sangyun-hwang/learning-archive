@@ -20,6 +20,7 @@
 
 - [JavaScript](FE/Javascript.md)
   - 데이터 타입과 동등 비교
+  - undefined와 null, 기본값 연산자 `||`와 `??`, JSON 직렬화 차이
   - 함수, 클래스, 클로저
   - 스코프, scope chain, shadowing, TDZ
   - 객체 프로퍼티 접근과 구조 분해 할당의 선택 기준

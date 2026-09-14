@@ -23,6 +23,81 @@ Object.is(user, user); // true
 
 React의 state 비교와 memoization은 얕은 비교를 기반으로 동작하는 경우가 많습니다. 객체 내부 값을 직접 수정하면 참조가 바뀌지 않아 변경을 감지하지 못할 수 있습니다.
 
+### undefined와 null
+
+`undefined`는 값이 지정되지 않았을 때 자연스럽게 나타나고, `null`은 값이 없음을 명시할 때 주로 사용합니다. 서로 다른 원시 타입이며, 이 의미 구분은 사용 관례이므로 실제 코드와 API의 약속을 확인해야 합니다. 개발자가 직접 `undefined`를 지정할 수도 있습니다.
+
+```js
+let name;
+name; // undefined
+
+const user = {};
+user.age; // undefined
+
+const selectedProduct = null; // 현재 선택한 상품 없음
+
+undefined === null; // false
+undefined == null;  // true
+```
+
+### 기본값 처리: ||와 ??
+
+`||`는 왼쪽이 falsy이면 오른쪽 값을 사용합니다. `??`는 왼쪽이 `null` 또는 `undefined`일 때만 오른쪽 값을 사용합니다.
+
+| 값 | `값 || 5` | `값 ?? 5` |
+| --- | --- | --- |
+| `0` | `5` | `0` |
+| `false` | `5` | `false` |
+| `''` | `5` | `''` |
+| `null` | `5` | `5` |
+| `undefined` | `5` | `5` |
+
+```js
+const price = 0;
+price || 1000; // 1000: 무료 가격까지 기본값으로 변경
+price ?? 1000; // 0: 유효한 무료 가격 유지
+
+const stock = 0;
+stock ?? 5; // 0: 재고 없음 유지
+```
+
+`if (!value)`도 `0`, `false`, 빈 문자열 등을 함께 포함하므로 `null`과 `undefined`만 검사하는 조건은 아닙니다. 두 값만 확인하려면 `value === null || value === undefined`처럼 표현할 수 있습니다.
+
+### 기본 매개변수와 구조 분해
+
+기본 매개변수와 구조 분해 기본값은 `undefined`일 때 적용되며 `null`에는 적용되지 않습니다.
+
+```js
+function greet(name = '방문자') {
+  return name;
+}
+
+greet();          // '방문자'
+greet(undefined); // '방문자'
+greet(null);      // null
+
+const { nickname = '방문자' } = { nickname: null };
+nickname; // null
+```
+
+### JSON과 프론트엔드 상태
+
+객체를 JSON으로 직렬화하면 `undefined`인 프로퍼티는 생략되고 `null`은 유지됩니다. 배열에서는 `undefined`도 `null`로 표현됩니다.
+
+```js
+JSON.stringify({ nickname: undefined, profileImage: null });
+// '{"profileImage":null}'
+
+JSON.stringify([undefined, null]);
+// '[null,null]'
+```
+
+프로필 수정 API에서 필드 생략은 기존 값 유지, `null`은 기존 값 삭제라는 약속을 정할 수 있습니다. 이는 JSON 자체의 기능이 아니라 백엔드와 합의한 API 규칙입니다.
+
+React에서 `null`과 `undefined`는 JSX 자식으로 출력해도 화면에 표시되지 않습니다. 상태에는 `null`을 선택한 항목 없음이라는 의미로 사용할 수 있으며, 로딩과 실패까지 구분해야 한다면 별도의 상태를 명시하는 편이 좋습니다.
+
+> undefined와 null은 값의 부재를 나타내지만 기본값 적용과 JSON 직렬화에서 차이가 있습니다. 유효한 0, false, 빈 문자열을 보존하면서 값이 없을 때만 기본값을 쓰려면 ??를 사용합니다.
+
 ## 함수
 
 JavaScript에서 함수는 일급 객체입니다. 변수에 할당하거나 인자로 전달하고, 다른 함수의 반환값으로 사용할 수 있습니다.
