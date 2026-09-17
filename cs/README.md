@@ -132,7 +132,7 @@
 - [MCP Transport: stdio, SSE, Streamable HTTP](AI/MCPTransport.md)
 - [Ontology](AI/Ontology.md)
 - [OpenCode](AI/OpenCode.md)
-- [Prompt Injection](AI/PromptInjection.md)
+- [Prompt Injection과 LLM 서비스의 신뢰 경계](AI/PromptInjection.md)
 - [Sovereign AI](AI/SovereignAI.md)
 
 ## Development Tools
