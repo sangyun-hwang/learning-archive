@@ -137,7 +137,7 @@
 
 ## Development Tools
 
-- [Git Worktree](Tools/GitWorktree.md)
+- [Git Worktree와 Branch의 차이](Tools/GitWorktree.md)
 - [uvx](Tools/uvx.md)
 
 ## Network

@@ -1,4 +1,4 @@
-# Git Worktree
+# Git Worktree와 Branch의 차이
 
 ## 개념
 
@@ -19,7 +19,43 @@ project-search/   -> feature/search
 project-hotfix/   -> hotfix/payment
 ```
 
-기존 Branch에 미커밋 변경이 있어도 별도의 Worktree에서 Hotfix나 다른 Feature를 시작할 수 있다. 각 폴더를 별도의 Editor 창으로 열거나 개발 Server를 동시에 실행하는 것도 가능하다.
+기존 Worktree에 미커밋 변경이 있어도 별도의 Worktree에서 Hotfix나 다른 Feature를 시작할 수 있다. 각 폴더를 별도의 Editor 창으로 열거나 개발 Server를 동시에 실행하는 것도 가능하다.
+
+## Branch와 Worktree는 대체 관계가 아니다
+
+Branch는 특정 Commit을 가리키는 참조다. 해당 Branch에서 Commit하면 참조가 새 Commit을 가리키도록 이동한다. Worktree는 실제 파일을 Checkout하고 수정하는 작업 공간이다.
+
+| 구분 | Branch | Worktree |
+| --- | --- | --- |
+| 목적 | 작업 이력을 분기 | 작업 공간을 분리 |
+| 생성 결과 | Commit을 가리키는 참조 | 별도 작업 폴더와 관리 정보 |
+| 미커밋 변경 | Branch 자체가 보관하지 않음 | 작업 파일과 Index에서 관리 |
+| 함께 사용하는 방법 | 기능별 Branch 생성 | 각 Branch를 서로 다른 폴더에 Checkout |
+
+Branch를 만드는 것만으로 새 폴더가 생기지는 않는다. 하나의 폴더에서 `git switch`로 Branch를 바꿀 수도 있고, Worktree를 추가해 여러 Branch를 동시에 펼쳐 놓을 수도 있다. Worktree는 Branch에 영구적으로 고정된 폴더는 아니며, 다른 Branch로 전환하거나 detached HEAD 상태로 사용할 수도 있다.
+
+## 미커밋 변경은 어디에 남는가
+
+아직 Commit하지 않은 변경은 Branch 이력이 아니라 현재 Worktree의 작업 파일과 Index에 남는다. 파일을 수정하면 작업 파일이 바뀌고, `git add`를 하면 선택한 변경이 Index에 반영된다.
+
+```text
+feature/login에서 파일 수정, Commit하지 않음
+-> main으로 전환 시도
+
+변경을 유지하면서 전환 가능한 경우
+-> 수정 내용이 main 작업 화면에도 남을 수 있음
+
+전환 과정에서 변경을 덮어쓸 위험이 있는 경우
+-> Git이 전환을 막음
+```
+
+따라서 "로그인 Branch에서 수정했으니 다른 Branch에서는 자동으로 숨겨지고, 돌아오면 복원된다"고 생각하면 안 된다. `git add`만으로도 Branch 이력에 저장되지는 않는다.
+
+- Commit: 변경을 Commit 객체로 기록하고 현재 Branch 참조를 이동한다. 일반적인 Branch Checkout 상태 기준이다.
+- Stash: 미커밋 작업을 별도로 보관해 전환 등에 활용한다.
+- Worktree: 기존 작업 파일을 그대로 두고 다른 폴더에서 별도 작업을 진행한다.
+
+예를 들어 로그인 작업 중 `main` 기준 Hotfix Worktree를 추가하면, 원래 폴더의 미커밋 로그인 변경은 유지되고 새 폴더에는 그 변경이 자동으로 복사되지 않는다.
 
 ## 공유하는 것과 분리되는 것
 
@@ -150,9 +186,25 @@ AI Agent마다 다른 Worktree를 제공하면 각 Agent가 별도의 작업 파
 
 Worktree는 작업 결과를 자동으로 합치는 기능이 아니다. 각 Worktree에서 만든 Commit은 기존 Git Workflow와 동일하게 Merge, Rebase 또는 Cherry-pick으로 반영한다.
 
+## 작업 분리와 보안 격리는 다르다
+
+Worktree로 파일을 나누어도 Merge 충돌이나 기능 간 모순이 없어지지는 않는다. 예를 들어 한 작업이 API 응답 형식을 바꾸고 다른 작업이 이전 형식을 기준으로 UI를 만들면, 각자 작업을 마쳐도 통합 후 오류가 날 수 있다.
+
+이런 코드 정합성 문제와 보안 격리도 별개다. Worktree는 다른 폴더의 파일 접근, 명령 실행, 외부 네트워크 통신 권한을 제한하지 않는다.
+
+```text
+작업 공간 분리
+-> 각자의 파일과 Index에서 작업
+
+보안 격리
+-> 접근 가능한 파일, 실행 가능한 명령, 네트워크 등을 제한
+```
+
+AI Agent가 별도 Worktree에서 실행돼도 같은 사용자 권한으로 접근 가능한 다른 폴더의 `.env`를 읽을 수 있다. 별도 폴더를 지정했다는 사실만으로 이를 차단했다고 볼 수 없다. 접근을 제한하려면 별도의 OS 권한 설정이나 Sandbox 등 실행 환경의 통제가 필요하다.
+
 ## 핵심 정리
 
-> Git Worktree는 하나의 Git 저장소와 Commit History를 공유하면서 Branch별 작업 폴더, HEAD와 Index를 분리한다. 기존 작업을 Stash하지 않고 다른 Branch를 동시에 다룰 수 있으며 Hotfix, 병렬 개발과 AI Agent 작업 분리에 유용하다. Worktree를 제거해도 Branch와 Commit은 자동으로 삭제되지 않으며, 작업 폴더는 가능하면 `git worktree remove`로 정리한다.
+> Branch는 Commit을 가리키며 작업 이력을 나누고, Worktree는 실제 작업 파일과 HEAD, Index를 나눈다. Commit 객체와 Branch Ref는 공유하므로 한쪽에서 만든 Commit은 다른 쪽에서도 조회할 수 있지만 작업 파일이 자동으로 바뀌지는 않는다. 미커밋 작업을 유지한 Hotfix나 병렬 개발에 유용하지만, 코드 통합 검증과 보안 격리를 대신하지는 않는다.
 
 ## 참고 자료
 
