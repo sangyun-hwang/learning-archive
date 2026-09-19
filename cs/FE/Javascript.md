@@ -47,6 +47,8 @@ const subtract = (a, b) => a - b;
 
 화살표 함수는 자신만의 `this`, `arguments`, `prototype`을 갖지 않습니다. 생성자 함수로 사용할 수 없고, 외부 lexical scope의 `this`를 사용합니다.
 
+호출 방식별 this, 메서드 분리, call/apply/bind는 [this 바인딩](ThisBinding.md)에서 정리합니다.
+
 좋은 함수는 한 가지 일을 명확하게 수행하고, 부수 효과를 줄이며, 이름만 보고 의도를 추측할 수 있어야 합니다.
 
 ## 클래스
