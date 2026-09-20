@@ -94,6 +94,54 @@ reader.call({ name: 'Other' }); // 'Sangyun'
 
 `user.makeReader()`의 this는 user이고, 내부 화살표 함수는 그 this를 사용한다. 화살표 함수는 자신만의 this가 없으므로 call, apply, bind로 this를 바꿀 수 없다.
 
+이 과정은 다음과 같이 구분한다.
+
+1. 일반 메서드인 makeReader를 `user.makeReader()`로 호출해 this가 user로 결정된다.
+2. 그 실행 중에 내부 화살표 함수가 만들어진다.
+3. 반환된 화살표 함수는 나중에 단독 호출해도 바깥 실행의 this를 사용한다.
+
+### 일반 함수를 반환하면 달라지는 점
+
+```js
+'use strict';
+
+const user = {
+  name: 'Sangyun',
+  makeReader() {
+    return function () {
+      return this.name;
+    };
+  },
+};
+
+const reader = user.makeReader();
+reader.call({ name: 'Admin' }); // 'Admin'
+// reader(); // TypeError: 단독 호출의 this는 undefined
+```
+
+일반 함수는 user의 메서드 안에서 만들어졌다는 이유만으로 바깥 this를 물려받지 않는다. 반환된 함수를 나중에 어떻게 호출하는지가 중요하다. 반면 앞 예제의 화살표 함수는 바깥 this를 사용하므로 `call()`로 다른 객체를 지정해도 바뀌지 않는다.
+
+### 문자열을 복사해서 기억하는 것은 아니다
+
+아래 코드는 독립적으로 실행하는 화살표 함수 예제다.
+
+```js
+const user = {
+  name: 'Sangyun',
+  makeReader() {
+    return () => this.name;
+  },
+};
+
+const reader = user.makeReader();
+user.name = 'Updated';
+
+reader(); // 'Updated'
+reader.call({ name: 'Admin' }); // 'Updated'
+```
+
+화살표 함수가 기억하는 것은 원래 문자열 'Sangyun'이 아니라 바깥 this를 통해 참조하는 user 객체다. 실행할 때 그 객체의 현재 name을 읽으므로 프로퍼티 변경은 결과에 반영된다.
+
 객체 리터럴의 `getName: () => this.name`은 해당 객체를 this로 자동 지정하지 않는다. 객체 리터럴 자체는 새로운 this를 만들지 않으므로 바깥 실행 문맥을 따른다.
 
 ## new와 이벤트 핸들러
