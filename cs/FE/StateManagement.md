@@ -18,6 +18,8 @@ Theme
 
 Component 하나에서만 사용하는 상태는 `useState`로 관리할 수 있습니다. 여러 Component가 공유하거나 props drilling이 커지는 client state에는 Zustand 같은 상태 관리 도구를 사용할 수 있습니다.
 
+가까운 컴포넌트끼리 공유하는 상태는 전역 도구 없이 [Lifting State Up](LiftingStateUp.md)으로 공통 부모에서 관리할 수도 있습니다.
+
 ### Server State
 
 Server가 원본을 소유하고 client는 가져온 값을 snapshot 또는 cache로 보관합니다.

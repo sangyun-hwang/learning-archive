@@ -48,6 +48,7 @@
   - Effect
   - useEffect, Effect 생명주기와 의존성 배열
 - [React 19 use API](FE/ReactUse.md)
+- [Lifting State Up: 상태 끌어올리기](FE/LiftingStateUp.md)
 - [TanStack Router](FE/TanStackRouter.md)
 - [Atomic Design](FE/AtomicDesign.md)
 - [Feature-Sliced Design](FE/FSD.md)
