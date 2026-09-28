@@ -80,6 +80,24 @@ export default function ProductOrder() {
 
 QuantityInput에 `useState(quantity)`를 추가하면 부모 수량과 별개의 상태가 만들어진다. useState의 초기값은 이후 props 변경을 자동으로 따라가지 않는다. 편집 중 임시값처럼 별도 목적이 없다면 같은 값을 중복으로 보관하지 않는다.
 
+### 리렌더링은 state 초기화가 아니다
+
+```tsx
+function Child({ quantity }: { quantity: number }) {
+  const [localQuantity] = useState(quantity);
+  return <p>{quantity} / {localQuantity}</p>;
+}
+```
+
+| 상황 | quantity prop | localQuantity state | 표시 |
+| --- | --- | --- | --- |
+| quantity가 1일 때 최초 마운트 | 1 | 1 | 1 / 1 |
+| 부모가 quantity를 5로 바꾸어 리렌더링 | 5 | 1 | 5 / 1 |
+
+같은 컴포넌트가 유지되고 localQuantity를 갱신하지 않았다는 전제다. 자식 함수는 다시 실행되지만 React는 기존 state를 유지하며, useState의 초기값 인자를 다시 적용하지 않는다. 따라서 "자식이 리렌더링되면 props를 복사한 state도 동기화된다"는 설명은 틀리다.
+
+같은 수량을 표시하는 목적이라면 localQuantity를 만들지 않고 quantity prop을 그대로 사용한다. 편집 후 저장하거나 취소할 수 있는 초안처럼 독립적인 값이 필요할 때만 별도 state를 두고, 초기화와 저장 시점을 명확히 정한다. 컴포넌트가 제거된 뒤 다시 마운트되거나 key가 바뀌어 새로 만들어지는 경우는 단순 리렌더링과 다르다.
+
 예제의 total도 quantity와 unitPrice로 계산할 수 있으므로 별도 state나 Effect로 동기화하지 않는다. 실제 결제 금액은 서버가 상품 가격과 정책을 기준으로 다시 계산해야 하며, 화면의 예상 금액을 그대로 신뢰하지 않는다.
 
 ## Controlled Component 관점
@@ -107,5 +125,6 @@ Context는 값을 멀리 전달하는 수단이며, 그 자체가 어떤 상태�
 ## 관련 자료
 
 - [React: Sharing State Between Components](https://react.dev/learn/sharing-state-between-components)
+- [React: useState](https://react.dev/reference/react/useState)
 - [클라이언트 상태와 서버 상태](StateManagement.md)
 - [React 기초](React.md)
