@@ -60,6 +60,7 @@
 - [CSS transition과 transform](FE/CSSTransitionTransform.md)
 - [브라우저 키보드 입력 처리](FE/KeyboardInput.md)
 - [이벤트 위임](FE/EventDelegation.md)
+- [Drag and Drop: 순서 변경과 그룹 이동](FE/DragAndDrop.md)
 - [브라우저 Gamepad와 Joystick 입력 처리](FE/GamepadInput.md)
 - [브라우저의 오디오 재생과 일시정지](FE/BrowserAudio.md)
 - [Event Loop](FE/EventLoop.md)
