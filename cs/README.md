@@ -30,6 +30,7 @@
   - 성능 측정
 - [undefined와 null: 값의 부재와 기본값 처리](FE/UndefinedNull.md)
 - [JavaScript this 바인딩](FE/ThisBinding.md)
+  - 현대 프론트엔드에서 this를 만나는 사용 사례: 미디어 콜백과 레거시 React·jQuery
 - [TypeScript](FE/Typescript.md)
   - 기본 타입
   - 인터페이스

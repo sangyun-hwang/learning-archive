@@ -159,11 +159,13 @@ new로 호출하면 새 인스턴스를 this로 사용한다. 화살표 함수�
 
 DOM의 `addEventListener`에 일반 함수를 직접 전달하면 this는 해당 핸들러의 `event.currentTarget`이다. 화살표 함수는 이 규칙 대신 바깥 this를 사용하므로, 요소가 필요하면 `event.currentTarget`을 명시적으로 사용하는 방법이 있다. React 함수 컴포넌트는 class 인스턴스 this 대신 props, state, 클로저를 중심으로 작성한다.
 
-## 현대 프론트엔드: 브라우저 객체의 메서드를 콜백으로 전달할 때
+## 현대 프론트엔드에서 this를 만나는 사용 사례
 
 React 함수 컴포넌트에서 this를 직접 사용할 일이 적어도, 브라우저 API나 객체 기반 라이브러리의 메서드를 콜백으로 전달할 때는 호출 대상을 이해해야 한다. 대표적으로 오디오와 비디오 요소는 HTMLMediaElement의 play, pause 같은 공통 API를 사용한다.
 
-### 메서드만 전달하면 원래 호출 관계는 유지되지 않는다
+이 섹션은 오디오·비디오 제어와 메서드 콜백, 기존 React 클래스 컴포넌트와 jQuery 코드의 유지보수를 중심으로 살펴본다. this를 새 코드에 억지로 도입하기보다, 실제로 만났을 때 호출 대상과 수정 방법을 판단하는 것이 목적이다.
+
+### 오디오·비디오: 메서드만 전달하면 원래 호출 관계는 유지되지 않는다
 
 아래 예제는 미디어 요소와 버튼이 DOM에 준비된 뒤 실행한다.
 
@@ -239,7 +241,66 @@ useEffect(() => {
 
 이 예제는 요소가 마운트 동안 교체되지 않는 경우를 가정한다. 이벤트 종류, 함수 참조, capture 설정을 맞춰 제거한다. 일반적인 React 버튼이라면 직접 리스너를 연결하기보다 `onClick={() => mediaRef.current?.pause()}`처럼 JSX 이벤트를 사용하는 편이 간단하다.
 
-Next.js의 `updateInvoice.bind(null, id)`는 이 사례와 목적이 다르다. 미디어 콜백은 this를 유지하는 것이 목적이고, 해당 Server Action 코드는 id 인자를 미리 지정하는 부분 적용이 목적이다.
+### 레거시 React 클래스 컴포넌트
+
+기존 React 코드에서는 this로 컴포넌트 인스턴스의 props와 state에 접근한다. 일반 메서드를 이벤트 핸들러로 전달할 때 인스턴스와의 관계를 유지하기 위해 생성자에서 bind하는 패턴을 볼 수 있다.
+
+```jsx
+import { Component } from 'react';
+
+class Counter extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { count: 0 };
+    this.handleClick = this.handleClick.bind(this);
+  }
+
+  handleClick() {
+    this.setState((state) => ({ count: state.count + 1 }));
+  }
+
+  render() {
+    return <button onClick={this.handleClick}>{this.state.count}</button>;
+  }
+}
+```
+
+bind가 없으면 전달한 일반 메서드가 Counter 인스턴스를 this로 사용한다고 보장할 수 없다. 클래스 필드의 화살표 함수인 `handleClick = () => { ... }`로 인스턴스의 this를 사용하는 코드도 볼 수 있다. 이는 일반 메서드가 자동으로 바인딩되는 것과 다르다.
+
+React는 클래스 컴포넌트를 지원하지만 신규 코드에는 함수 컴포넌트를 권장한다. 이 예제는 기존 코드의 this.state, this.props, this.setState와 이벤트 바인딩을 읽기 위한 것이다. [React: Component](https://react.dev/reference/react/Component)
+
+### 레거시 jQuery 이벤트 핸들러
+
+jQuery의 일반 함수 핸들러에서는 this로 이벤트에 대응하는 DOM 요소를 사용할 수 있다. 아래 위임 예제에서는 선택자에 일치한 버튼이 this가 된다.
+
+```js
+$('#list').on('click', '.select-button', function () {
+  $(this).addClass('selected');
+});
+```
+
+이때 this는 jQuery 객체가 아닌 DOM 요소이고, `$(this)`로 감싸 jQuery 메서드를 사용한다. 버튼 내부의 span을 클릭해도 this는 매칭된 버튼이며, 실제 이벤트 시작점인 event.target은 span일 수 있다.
+
+이 코드를 단순히 화살표 함수로 바꾸면 jQuery가 지정하는 this 대신 바깥 this를 사용하게 된다. 화살표 함수를 사용하려면 this 의존도 함께 바꿔야 한다.
+
+```js
+$('#list').on('click', '.select-button', (event) => {
+  $(event.currentTarget).addClass('selected');
+});
+```
+
+여기서 currentTarget은 jQuery 위임 이벤트가 제공하는 매칭 요소다. 리스너가 붙은 부모를 currentTarget으로 제공하는 Native DOM 이벤트 위임과 혼동하지 않는다. jQuery에서 위임 리스너를 등록한 부모는 event.delegateTarget으로 확인할 수 있다. [jQuery: on](https://api.jquery.com/on/)
+
+### Next.js의 bind 사용과 구분하기
+
+Next.js의 `updateInvoice.bind(null, id)`는 위 사례와 목적이 다르다. 미디어나 클래스 콜백은 this를 유지하는 것이 목적이고, 해당 Server Action 코드는 id 인자를 미리 지정하는 부분 적용이 목적이다.
+
+| 만나는 상황 | this 또는 bind의 목적 |
+| --- | --- |
+| 오디오·비디오 메서드를 콜백으로 전달 | 실제 미디어 요소를 호출 대상으로 유지 |
+| React 클래스 컴포넌트 | 컴포넌트 인스턴스의 상태와 메서드 사용 |
+| jQuery 일반 함수 이벤트 핸들러 | 이벤트에 대응하는 DOM 요소 접근 |
+| Next.js Server Action의 bind(null, id) | this 활용이 아니라 인자 일부를 미리 지정 |
 
 ## 면접 요약
 
@@ -253,3 +314,5 @@ Next.js의 `updateInvoice.bind(null, id)`는 이 사례와 목적이 다르다. 
 - [MDN: bind](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind)
 - [MDN: HTMLMediaElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement)
 - [MDN: addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
+- [React: Component](https://react.dev/reference/react/Component)
+- [jQuery: on](https://api.jquery.com/on/)
