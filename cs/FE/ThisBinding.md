@@ -159,6 +159,88 @@ new로 호출하면 새 인스턴스를 this로 사용한다. 화살표 함수�
 
 DOM의 `addEventListener`에 일반 함수를 직접 전달하면 this는 해당 핸들러의 `event.currentTarget`이다. 화살표 함수는 이 규칙 대신 바깥 this를 사용하므로, 요소가 필요하면 `event.currentTarget`을 명시적으로 사용하는 방법이 있다. React 함수 컴포넌트는 class 인스턴스 this 대신 props, state, 클로저를 중심으로 작성한다.
 
+## 현대 프론트엔드: 브라우저 객체의 메서드를 콜백으로 전달할 때
+
+React 함수 컴포넌트에서 this를 직접 사용할 일이 적어도, 브라우저 API나 객체 기반 라이브러리의 메서드를 콜백으로 전달할 때는 호출 대상을 이해해야 한다. 대표적으로 오디오와 비디오 요소는 HTMLMediaElement의 play, pause 같은 공통 API를 사용한다.
+
+### 메서드만 전달하면 원래 호출 관계는 유지되지 않는다
+
+아래 예제는 미디어 요소와 버튼이 DOM에 준비된 뒤 실행한다.
+
+```js
+const media = document.querySelector('audio, video');
+const button = document.querySelector('#pause');
+
+if (!(media instanceof HTMLMediaElement) || !button) {
+  throw new Error('미디어 요소와 일시정지 버튼이 필요합니다.');
+}
+
+media.pause(); // media를 대상으로 호출하므로 정상 동작
+
+// 잘못된 연결 예시: 실행하지 않는다.
+// button.addEventListener('click', media.pause);
+```
+
+`media.pause`를 전달하는 것은 함수 참조를 전달하는 것이지, `media`와 연결된 호출을 함께 전달하는 것이 아니다. 일반 함수 리스너를 실행할 때 브라우저는 this로 리스너를 등록한 button을 사용한다. 하지만 pause는 HTMLMediaElement를 대상으로 실행되어야 하므로 이 방식은 호출 오류를 일으킨다.
+
+여기서 'this가 유실된다'는 것은 **원래 객체가 사라진다는 뜻이 아니라, 원래 객체를 this로 사용하는 호출 관계가 유지되지 않는다는 뜻**이다. 콜백의 this가 무조건 undefined가 되는 것도 아니다. 콜백을 호출하는 API에 따라 다른 객체가 될 수 있다.
+
+### bind 또는 래퍼 함수로 호출 대상을 유지한다
+
+```js
+// 방법 1: this가 media로 고정된 새 함수를 만든다.
+const boundPause = media.pause.bind(media);
+
+// 방법 2: 콜백 내부에서 media.pause()로 호출한다.
+const wrappedPause = () => media.pause();
+```
+
+두 방식 중 하나를 선택한다. 두 번째 방식은 화살표 함수의 this로 media를 지정하는 것이 아니다. 화살표 함수에서는 this를 사용하지 않고, 내부의 `media.pause()`가 호출 대상을 명확히 한다.
+
+`media.pause()`처럼 직접 호출할 때는 별도의 bind가 필요 없다. 모든 브라우저 API 메서드에 일괄적으로 bind를 붙일 필요도 없다. 메서드가 this에 의존하는지, 라이브러리가 이미 바인딩된 함수를 제공하는지 확인한다.
+
+### 이벤트 제거에는 같은 함수 참조가 필요하다
+
+```js
+const first = media.pause.bind(media);
+const second = media.pause.bind(media);
+
+first === second; // false
+
+button.addEventListener('click', first);
+button.removeEventListener('click', second); // first는 제거되지 않음
+button.removeEventListener('click', first);  // 등록한 함수로 제거
+```
+
+bind는 호출할 때마다 새 함수를 만든다. 따라서 등록할 때와 제거할 때 각각 bind를 호출하면 동작이 같아도 서로 다른 함수다. 다음처럼 화살표 함수를 각각 만드는 경우도 동일하다.
+
+```js
+// 잘못된 cleanup 예시
+button.addEventListener('click', () => media.pause());
+button.removeEventListener('click', () => media.pause());
+```
+
+React Effect에서 직접 DOM 리스너를 연결할 때도 같은 참조를 보관한다. 아래는 컴포넌트가 가진 mediaRef와 buttonRef를 사용하는 부분 예제다.
+
+```jsx
+useEffect(() => {
+  const media = mediaRef.current;
+  const button = buttonRef.current;
+  if (!media || !button) return;
+
+  const handlePause = () => media.pause();
+  button.addEventListener('click', handlePause);
+
+  return () => {
+    button.removeEventListener('click', handlePause);
+  };
+}, []);
+```
+
+이 예제는 요소가 마운트 동안 교체되지 않는 경우를 가정한다. 이벤트 종류, 함수 참조, capture 설정을 맞춰 제거한다. 일반적인 React 버튼이라면 직접 리스너를 연결하기보다 `onClick={() => mediaRef.current?.pause()}`처럼 JSX 이벤트를 사용하는 편이 간단하다.
+
+Next.js의 `updateInvoice.bind(null, id)`는 이 사례와 목적이 다르다. 미디어 콜백은 this를 유지하는 것이 목적이고, 해당 Server Action 코드는 id 인자를 미리 지정하는 부분 적용이 목적이다.
+
 ## 면접 요약
 
 > 일반 함수의 this는 호출 방식에 따라 정해진다. 메서드 호출에서는 호출한 객체, strict mode의 단독 호출에서는 undefined이며, call과 apply로 명시하거나 bind로 고정한 함수를 만들 수 있다. 화살표 함수는 자체 this 없이 바깥 this를 사용한다. 따라서 메서드를 꺼내 콜백으로 전달할 때 원래 객체와의 관계가 유지되는지 확인해야 한다.
@@ -169,3 +251,5 @@ DOM의 `addEventListener`에 일반 함수를 직접 전달하면 this는 해당
 - [Next.js Dashboard: bind를 사용한 수정 액션](Next.js/dashboard-app/chapter-11-mutating-data.md)
 - [MDN: this](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this)
 - [MDN: bind](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind)
+- [MDN: HTMLMediaElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement)
+- [MDN: addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
