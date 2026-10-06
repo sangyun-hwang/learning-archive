@@ -129,6 +129,7 @@
 
 - [ADE (Agentic Development Environment)](AI/AgenticDevelopmentEnvironment.md)
 - [AX and AI Integration](AI/AgentExperience.md)
+- [FDE: 고객 환경에서 문제를 해결하는 엔지니어](AI/ForwardDeployedEngineer.md)
 - [Function Calling](AI/FunctionCalling.md)
 - [Hermes Agent](AI/HermesAgent.md)
 - [Jev: 텍스트 생성 대신 구조화된 판단을 반환하는 AI](AI/Jev.md)
