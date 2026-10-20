@@ -132,6 +132,7 @@
 
 - [ADE (Agentic Development Environment)](AI/AgenticDevelopmentEnvironment.md)
 - [AX and AI Integration](AI/AgentExperience.md)
+- [Aside Browser: 브라우저 에이전트의 작업 실행](AI/AsideBrowser.md)
 - [Claude Code Mods: 이벤트와 UI를 확장하는 플러그인](AI/ClaudeCodeMods.md)
 - [FDE: 고객 환경에서 문제를 해결하는 엔지니어](AI/ForwardDeployedEngineer.md)
 - [Function Calling](AI/FunctionCalling.md)
