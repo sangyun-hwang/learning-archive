@@ -53,6 +53,7 @@
 - [Provider 패턴: React Context로 값과 기능 제공하기](FE/ProviderPattern.md)
 - [리스트 가상화 (List Virtualization)](FE/ListVirtualization.md)
 - [Intersection Observer](FE/IntersectionObserver.md)
+- [여러 탭과 창 사이의 통신: BroadcastChannel과 postMessage](FE/CrossTabCommunication.md)
 - [TanStack Router](FE/TanStackRouter.md)
 - [Atomic Design](FE/AtomicDesign.md)
 - [Feature-Sliced Design](FE/FSD.md)
