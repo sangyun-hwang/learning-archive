@@ -122,6 +122,7 @@
 ## Cloud & Data
 
 - [AWS](Cloud/AWS.md)
+- [Amazon Bedrock: 관리형 AI 모델 호출 기초](Cloud/AmazonBedrock.md)
 - [Google Cloud & Looker](Cloud/GoogleCloud.md)
 
 ## Storage
