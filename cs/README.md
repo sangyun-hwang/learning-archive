@@ -70,7 +70,7 @@
 - [브라우저의 오디오 재생과 일시정지](FE/BrowserAudio.md)
 - [Event Loop](FE/EventLoop.md)
 - [AbortController](FE/AbortController.md)
-- [Race Condition: 비동기 응답 순서와 최신 화면](FE/RaceCondition.md)
+- [Race Condition: 공유 상태의 경쟁과 비동기 응답 순서](FE/RaceCondition.md)
 - [Ky](FE/Ky.md)
 - [File System Access API](FE/FileSystemAccess.md)
 - [브라우저에서 Native Application 실행하기](FE/BrowserNativeAppLaunch.md)
