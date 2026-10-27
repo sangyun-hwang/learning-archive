@@ -55,6 +55,7 @@
 - [리스트 가상화 (List Virtualization)](FE/ListVirtualization.md)
 - [Intersection Observer](FE/IntersectionObserver.md)
 - [여러 탭과 창 사이의 통신: BroadcastChannel과 postMessage](FE/CrossTabCommunication.md)
+- [히스토리 스택과 렌더링 방식별 뒤로·앞으로 가기](FE/BrowserHistory.md)
 - [TanStack Router](FE/TanStackRouter.md)
 - [Atomic Design](FE/AtomicDesign.md)
 - [Feature-Sliced Design](FE/FSD.md)
