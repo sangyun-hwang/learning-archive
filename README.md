@@ -95,6 +95,7 @@ React, Next.js, TypeScript 기반의 프론트엔드 학습과 실습이 가장 
 
 원본 저장소는 그대로 두고, 이 저장소에서는 필요한 학습 내용을 주제별로 병합해서 관리합니다.
 
+- [seo-geo-learning-notes](https://github.com/sangyun-hwang/seo-geo-learning-notes) (Private) - OPEN SCHEMA SEO/GEO부트캠프 10기 개인 학습 기록. 강의 기록과 직접 실습·적용 근거를 별도로 관리하며, 강의 자료는 이 아카이브로 복제하지 않습니다. 접근 권한이 있는 GitHub 계정으로 로그인해야 볼 수 있습니다.
 - [study-CS](https://github.com/sangyun-hwang/study-CS) - CS 학습 원본
 - [study-java](https://github.com/sangyun-hwang/study-java) - Java 기초 학습 원본
 - [learn-react](https://github.com/sangyun-hwang/learn-react) - React 학습 원본
