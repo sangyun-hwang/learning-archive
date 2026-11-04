@@ -56,6 +56,7 @@
 - [Intersection Observer](FE/IntersectionObserver.md)
 - [여러 탭과 창 사이의 통신: BroadcastChannel과 postMessage](FE/CrossTabCommunication.md)
 - [히스토리 스택과 렌더링 방식별 뒤로·앞으로 가기](FE/BrowserHistory.md)
+- [편집기의 Undo / Redo: 상태 이력과 작업 단위](FE/EditorUndoRedo.md)
 - [비활성 탭의 생명주기와 메모리 회수](FE/BackgroundTabLifecycle.md)
 - [TanStack Router](FE/TanStackRouter.md)
 - [Atomic Design](FE/AtomicDesign.md)
