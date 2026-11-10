@@ -147,6 +147,7 @@
 - [Hermes Agent](AI/HermesAgent.md)
 - [Jev: 텍스트 생성 대신 구조화된 판단을 반환하는 AI](AI/Jev.md)
 - [LLM Guardrails](AI/LLMGuardrails.md)
+- [LLM Wiki와 Second Brain](AI/LLMWiki.md)
 - [Loop Engineering](AI/LoopEngineering.md)
 - [MCP Transport: stdio, SSE, Streamable HTTP](AI/MCPTransport.md)
 - [Ontology](AI/Ontology.md)
