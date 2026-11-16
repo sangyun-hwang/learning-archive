@@ -149,6 +149,7 @@
 - [Jev: 텍스트 생성 대신 구조화된 판단을 반환하는 AI](AI/Jev.md)
 - [LLM Guardrails](AI/LLMGuardrails.md)
 - [LLM Wiki와 Second Brain](AI/LLMWiki.md)
+- [Grill Me: 구현 전에 설계 결정 명확히 하기](AI/GrillMe.md)
 - [Loop Engineering](AI/LoopEngineering.md)
 - [MCP Transport: stdio, SSE, Streamable HTTP](AI/MCPTransport.md)
 - [Ontology](AI/Ontology.md)
