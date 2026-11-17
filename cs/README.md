@@ -150,6 +150,7 @@
 - [LLM Guardrails](AI/LLMGuardrails.md)
 - [LLM Wiki와 Second Brain](AI/LLMWiki.md)
 - [Grill Me: 구현 전에 설계 결정 명확히 하기](AI/GrillMe.md)
+- [컨텍스트 압축 (Context Compaction)](AI/ContextCompaction.md)
 - [Loop Engineering](AI/LoopEngineering.md)
 - [MCP Transport: stdio, SSE, Streamable HTTP](AI/MCPTransport.md)
 - [Ontology](AI/Ontology.md)
